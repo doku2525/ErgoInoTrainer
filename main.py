@@ -10,23 +10,19 @@ from flaskview import FlaskView
 from trainingsprogramm import Trainingsprogramm
 import trainingsprogramm as tp
 
-
-def to_do() -> list[str]:
-    return [
-        "TODO ergometer.py -- Benutze die neuen Funktionen update_cad_zeitenliste() und verarbeite_device_daten()",
-        "TODO In boardconnector.py, Implementiere eine Funktion, die die Zeit von time.time() mit\
-            der Zeit des Devices syncronisiert",
-        "TODO Ein Zeitobjekt(ABC) mit Unterklassen Sekunden, Minuten, Millis, Stunden erstellen\
-        um dann ein Objekt zu haben, worauf ich mit minuten(), sekunden(), millis(), stunden() zugreifen kann.\
-        Im Code wird immer wild zwischen Millis, Sekunden und Minuten hinhergesprungen.",
-        "TODO Die 0 Taste mit bremse(0) belegen.",
-        "TODO Log-Funktion zum loggen der Messwerte",
-        "TODO Log-Funktion zum loggen des ausgefuehrten Trainingsprogramms",
-        "TODO Einige Elemente wie Musik usw. sind noch nicht aus der Originaldatei rueberkopiert.",
-        "TODO Ein kleiner Countdown, wenn man am Anfang startet. Evtl. auch fuer jedes Mal,\
-        wenn man von Pause auf Start geht",
-        "TODO Berechne die CAD fuer Intervalle genauer, in dem die erste Zeit aus der Reihe der Tritte"
-    ]
+# TODO ergometer.py -- Benutze die neuen Funktionen update_cad_zeitenliste() und verarbeite_device_daten()
+# TODO In boardconnector.py, Implementiere eine Funktion, die die Zeit von time.time() mit
+#   der Zeit des Devices syncronisiert",
+# TODO Ein Zeitobjekt(ABC) mit Unterklassen Sekunden, Minuten, Millis, Stunden erstellen
+#   um dann ein Objekt zu haben, worauf ich mit minuten(), sekunden(), millis(), stunden() zugreifen kann.
+#   Im Code wird immer wild zwischen Millis, Sekunden und Minuten hinhergesprungen.
+# TODO Die 0 Taste mit bremse(0) belegen.
+# TODO Log-Funktion zum loggen der Messwerte
+# TODO Log-Funktion zum loggen des ausgefuehrten Trainingsprogramms
+# TODO Einige Elemente wie Musik usw. sind noch nicht aus der Originaldatei rueberkopiert.
+# TODO Ein kleiner Countdown, wenn man am Anfang startet. Evtl. auch fuer jedes Mal,
+#   wenn man von Pause auf Start geht
+# TODO Berechne die CAD fuer Intervalle genauer, in dem die erste Zeit aus der Reihe der Tritte
 
 
 meine_trainings_programme = [
