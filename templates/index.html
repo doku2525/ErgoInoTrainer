@@ -1,0 +1,43 @@
+<!-- static/index.html -->
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Echtzeit-Updates</title>
+    <script>
+        function fetchData() {
+            fetch('/ergometer')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('data').innerText = JSON.stringify(data, null, 2);
+                })
+                .catch(error => console.error('Fehler:', error));
+        }
+        // Daten alle 0.5 Sekunden abrufen
+        setInterval(fetchData, 500);
+
+        document.addEventListener('keydown', function(event) {
+            let key = '';
+            if (event.key === 'p' || event.key === 'q') {
+                key = event.key;
+                sendInput(key);
+            }
+        });
+
+        function sendInput(key) {
+            fetch('/input', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ key: key })
+            });
+        }
+
+    </script>
+</head>
+<body>
+    <h1>Echtzeit-Update der Ergometer-Daten</h1>
+    <pre id="data">Daten werden geladen...</pre>
+</body>
+</html>

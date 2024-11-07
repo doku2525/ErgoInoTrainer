@@ -1,0 +1,45 @@
+@startuml
+
+package "Computer" {
+  [Anwendungsprogramm]
+}
+
+package "Arduino" {
+  [Sketch]
+}
+
+package "Herzfrequenz" {
+  [HF-Daten]
+}
+package "Sensoren" {
+  [Sensor Trittfrequenz]
+  [Sensor Bremse]
+  [Sensor Spannung]
+  [Sensor Temperatur]
+}
+
+database "Datenbank" {
+  [Messdaten]
+}
+
+cloud "Internet" {
+  [Server]
+}
+
+[Anwendungsprogramm] <--> [USB-Port]
+[Anwendungsprogramm] <--> [Bluetooth]
+[USB-Port] <--> [Sketch]
+[Bluetooth] <--> [HF-Daten]
+[Sketch] --> [Sensor Trittfrequenz]
+[Sketch] --> [Sensor Bremse]
+[Sketch] --> [Sensor Spannung]
+[Sketch] --> [Sensor Temperatur]
+
+[Sensor Trittfrequenz] --> [Messdaten]
+[Sensor Spannung] --> [Messdaten]
+[Sensor Temperatur] --> [Messdaten]
+[Sensor Bremse] --> [Messdaten]
+
+[Server] --> [Datenbank]
+
+@enduml
