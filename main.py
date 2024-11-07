@@ -10,20 +10,6 @@ from flaskview import FlaskView
 from trainingsprogramm import Trainingsprogramm
 import trainingsprogramm as tp
 
-# TODO ergometer.py -- Benutze die neuen Funktionen update_cad_zeitenliste() und verarbeite_device_daten()
-# TODO In boardconnector.py, Implementiere eine Funktion, die die Zeit von time.time() mit
-#   der Zeit des Devices syncronisiert",
-# TODO Ein Zeitobjekt(ABC) mit Unterklassen Sekunden, Minuten, Millis, Stunden erstellen
-#   um dann ein Objekt zu haben, worauf ich mit minuten(), sekunden(), millis(), stunden() zugreifen kann.
-#   Im Code wird immer wild zwischen Millis, Sekunden und Minuten hinhergesprungen.
-# TODO Die 0 Taste mit bremse(0) belegen.
-# TODO Log-Funktion zum loggen der Messwerte
-# TODO Log-Funktion zum loggen des ausgefuehrten Trainingsprogramms
-# TODO Einige Elemente wie Musik usw. sind noch nicht aus der Originaldatei rueberkopiert.
-# TODO Ein kleiner Countdown, wenn man am Anfang startet. Evtl. auch fuer jedes Mal,
-#   wenn man von Pause auf Start geht
-# TODO Berechne die CAD fuer Intervalle genauer, in dem die erste Zeit aus der Reihe der Tritte
-
 
 meine_trainings_programme = [
     ("G1 locker", "erzeuge_trainingsprogramm_G1(dauer_in_minuten=95, pwm=34, cad=100)",
@@ -76,6 +62,7 @@ def main():
         None
     ]
     log_file = log_files[2]
+    print("Branchversion")
 
     mein_modell = ApplikationModell()   # Als Standard wird ArduinoBoard in ApplikationModell initialisiert
     mein_modell.trainingsprogramm, eingabe = waehle_trainingsprogramm_tkinter(meine_programme=meine_trainings_programme)
