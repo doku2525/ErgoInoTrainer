@@ -62,7 +62,6 @@ def main():
         None
     ]
     log_file = log_files[2]
-    print("Branchversion")
 
     mein_modell = ApplikationModell()   # Als Standard wird ArduinoBoard in ApplikationModell initialisiert
     mein_modell.trainingsprogramm, eingabe = waehle_trainingsprogramm_tkinter(meine_programme=meine_trainings_programme)

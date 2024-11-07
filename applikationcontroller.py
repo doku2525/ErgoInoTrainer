@@ -37,7 +37,7 @@ def update_daten_modell(daten_modell: ViewDatenModell = ViewDatenModell(), statu
         'cad_durchschnitt': status.modell.ergo.calc_cad_durchschnitt(status.modell.akuelle_zeit().als_ms(), 1),
         'cad_aktuell': status.werte_nach_trainngsplan[2],
         'cad_differenz': status.modell.ergo.lese_cadence() - status.werte_nach_trainngsplan[2],
-        'pwm_wert': status.werte_nach_trainngsplan[1] / 100.0,
+        'pwm_wert': status.berechne_pwm_wert() / 100.0,
         'distanze': status.modell.ergo.lese_distance(),
         'distanze_am_ziel': status.modell.ergo.calc_distanze_am_ende(status.gestoppte_zeit.als_ms(),
                                                                      status.modell.trainingsprogramm.
@@ -106,6 +106,10 @@ class Status:
                                         berechne_werte(self.gestoppte_zeit.als_ms()))
         return self
 
+    def berechne_pwm_wert(self) -> int:
+        return self.modell.ergo.berechne_korigierten_bremswert(ausgangs_wert=self.werte_nach_trainngsplan[1],
+                                                               name=self.werte_nach_trainngsplan[0])
+
 
 class ApplikationController:
 
@@ -128,28 +132,23 @@ class ApplikationController:
         }
         return key_bindings.get(key, "")
 
-    def command_mapper(self, command: str) -> Callable:
+    def command_mapper(self, status: Status) -> Callable:
         def pause_mit_zeit():
             if self.modell.uhr.macht_pause():
                 self.modell.uhr = self.modell.uhr.start(self.modell.millis_jetzt())
             else:
                 self.modell.uhr = self.modell.uhr.pause(self.modell.millis_jetzt())
 
-        # TODO Benutze folgendes System, um auch Argumente mit den Funktionen zu uebergeben
-        #   Im Dict als Tuple speichern (self.modell.ergo.bremsePlusPlus, {'start_value': 50})
-        #  Das Tupel dann wie folgt bearbeiten:
-        #   funktion, argumente = command_map[command]
-        #   funktion(**argumente)
-        #     P.S. Das funktioniert auch fuer lambda-Funktionen
+        # Das Komando besteht aus einem tupel[Callable, dict[args]]
         command_map = {
-            "QUIT": self.beende_programm,
-            "PWM++": self.modell.ergo.bremsePlusPlus,
-            "PWM+": self.modell.ergo.bremsePlus,
-            "PWM--": self.modell.ergo.bremseMinusMinus,
-            "PWM-": self.modell.ergo.bremseMinus,
-            "PAUSE": pause_mit_zeit
+            "QUIT": (self.beende_programm, {}),
+            "PWM++": (self.modell.ergo.bremsePlusPlus, {'name': status.werte_nach_trainngsplan[0]}),
+            "PWM+": (self.modell.ergo.bremsePlus, {'name': status.werte_nach_trainngsplan[0]}),
+            "PWM--": (self.modell.ergo.bremseMinusMinus, {'name': status.werte_nach_trainngsplan[0]}),
+            "PWM-": (self.modell.ergo.bremseMinus, {'name': status.werte_nach_trainngsplan[0]}),
+            "PAUSE": (pause_mit_zeit, {})
         }
-        return command_map.get(command, lambda: None)
+        return command_map.get(status.gedrueckte_taste, lambda: None)
 
     def beende_programm(self) -> None:
         self.modell.board.sendeUndLeseWerte(0)  # Bremse auf 0 um das PWM-Summen an der Bremse zu stoppen
@@ -162,8 +161,9 @@ class ApplikationController:
             if event.type == pygame.KEYDOWN:
                 status.gedrueckte_taste = ApplikationController.key_mapper(event.key)
                 if status.gedrueckte_taste:
-                    # Fuehrt Befehl aus.
-                    self.command_mapper(status.gedrueckte_taste)()
+                    # Fuehre den zur gedrueckten Taste passenden Befehl aus.
+                    funktion, argumente = self.command_mapper(status)
+                    funktion(**argumente)
 
         return status
 
@@ -176,7 +176,7 @@ class ApplikationController:
         status.modell.trainingsprogramm.verarbeite_messwerte(status.gestoppte_zeit.als_ms(),
                                                              status.modell.ergo.lese_distance())
         self.update_ergometer(status)
-        status.modell.zonen.updateZone(pwm=status.modell.ergo.bremse / 100, zeit=status.gestoppte_zeit,
+        status.modell.zonen.updateZone(pwm=status.berechne_pwm_wert() / 100, zeit=status.gestoppte_zeit,
                                        dist=status.modell.ergo.lese_distance(), herz=0)
         neue_daten = update_daten_modell(daten_modell=daten_modell, status=status)
         return status, neue_daten
@@ -225,7 +225,8 @@ class ApplikationController:
             # ********
             # Eingabe Zeit, Devices, Tastatur
             status.update_zeit()
-            self.modell.board.sendeUndLeseWerte(status.werte_nach_trainngsplan[1])   # ErgometerDevice
+            self.modell.board.sendeUndLeseWerte(status.berechne_pwm_wert())     # ErgometerDevice
+
             # TODO Implementiere Eingabe Herzfrequenz
             status = self.process_tastatureingabe(status)
 

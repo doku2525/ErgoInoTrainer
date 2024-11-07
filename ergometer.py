@@ -14,7 +14,7 @@ class Ergometer:
         self.korrekturwerte_bremse = dict()
 
     def setBremse(self, neuer_wert):
-        self.bremse = min(max(neuer_wert, 0), 100)
+        self.bremse = min(max(neuer_wert, 0), 100)      # 0 <= x <= 100
 
     def korrigiere_bremswert(self, name: str | None = None, wert: int = 0) -> None:
         if name is None:
@@ -23,7 +23,7 @@ class Ergometer:
             self.korrekturwerte_bremse[name] = self.korrekturwerte_bremse.get(name, 0) + wert
 
     def berechne_korigierten_bremswert(self, name: str = None, ausgangs_wert: int = 0) -> int:
-        return min(max(ausgangs_wert + self.korrekturwerte_bremse.get(name, 0), 0), 100)
+        return min(max(ausgangs_wert + self.korrekturwerte_bremse.get(name, 0), 0), 100)   # 0 <= x <= 100
 
     def bremseMinus(self, name: str | None = None):
         self.korrigiere_bremswert(wert=self.bremse - 1 if name is None else -1, name=name)
@@ -59,6 +59,7 @@ class Ergometer:
         wert = self.lese_cadence() * self.bremse / 100
         return float(f"{wert:.{komma_stellen}f}")
 
+    # TODO Variablezeit_spanne_millis sieht ueberfluessig aus. Wird die gesamte Funktion ueberhaupt benutzt?
     def calc_power_index_durchschnitt(self, zeit_spanne_millis: int, komma_stellen: int = 2) -> float:
         return float(f"{self.calc_power_index():.{komma_stellen}f}")
 
@@ -87,4 +88,3 @@ class Ergometer:
         if neue_zeiten := sorted(set_mit_zeiten_ohne_nullen - set(self.cad_zeitenliste[-4:])):
             self.cad_zeitenliste = self.cad_zeitenliste[:] + neue_zeiten
         return tuple(neue_zeiten)
-
