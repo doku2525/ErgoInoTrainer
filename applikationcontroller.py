@@ -1,5 +1,4 @@
 from __future__ import annotations
-import copy
 from typing import Callable
 import sys
 import pygame
@@ -163,13 +162,16 @@ class ApplikationController:
                 if status.gedrueckte_taste:
                     # Fuehre den zur gedrueckten Taste passenden Befehl aus.
                     funktion, argumente = self.command_mapper(status)
-                    funktion(**argumente)
+                    if isinstance(result := funktion(**argumente), self.modell.ergo.__class__):
+                        print(f"Bremse veraendert {result.__dict__}")
+                        status.modell.ergo = result
 
         return status
 
     def update_ergometer(self, status: Status) -> None:
-        self.modell.ergo.bremse = status.werte_nach_trainngsplan[1]
-        self.modell.ergo.update_device_werte(self.modell.board.device_daten)
+        status.modell.ergo = (self.modell.ergo.
+                              setBremse(status.werte_nach_trainngsplan[1]).
+                              update_device_werte(self.modell.board.device_daten))
 
     def update_daten(self, status: Status, daten_modell: ViewDatenModell) -> tuple[Status, ViewDatenModell]:
         status.update_werte_nach_trainingsplan()
