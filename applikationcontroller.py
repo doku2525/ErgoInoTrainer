@@ -135,6 +135,12 @@ class ApplikationController:
             else:
                 self.modell.uhr = self.modell.uhr.pause(self.modell.millis_jetzt())
 
+        # TODO Benutze folgendes System, um auch Argumente mit den Funktionen zu uebergeben
+        #   Im Dict als Tuple speichern (self.modell.ergo.bremsePlusPlus, {'start_value': 50})
+        #  Das Tupel dann wie folgt bearbeiten:
+        #   funktion, argumente = command_map[command]
+        #   funktion(**argumente)
+        #     P.S. Das funktioniert auch fuer lambda-Funktionen
         command_map = {
             "QUIT": self.beende_programm,
             "PWM++": self.modell.ergo.bremsePlusPlus,
@@ -156,6 +162,7 @@ class ApplikationController:
             if event.type == pygame.KEYDOWN:
                 status.gedrueckte_taste = ApplikationController.key_mapper(event.key)
                 if status.gedrueckte_taste:
+                    # Fuehrt Befehl aus.
                     self.command_mapper(status.gedrueckte_taste)()
 
         return status

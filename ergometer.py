@@ -11,26 +11,31 @@ class Ergometer:
         self.max_anzahl_werte: int = max_anzahl_werte
         self.device_werte: DeviceDatenModell | None = None
         self.cad_zeitenliste: list[int] = list()
+        self.korrekturwerte_bremse = dict()
 
     def setBremse(self, neuer_wert):
-        if neuer_wert > 100:
-            self.bremse = 100
-        elif neuer_wert < 0:
-            self.bremse = 0
+        self.bremse = min(max(neuer_wert, 0), 100)
+
+    def korrigiere_bremswert(self, name: str | None = None, wert: int = 0) -> None:
+        if name is None:
+            self.setBremse(wert)
         else:
-            self.bremse = neuer_wert
+            self.korrekturwerte_bremse[name] = self.korrekturwerte_bremse.get(name, 0) + wert
 
-    def bremseMinus(self):
-        self.setBremse(self.bremse - 1)
+    def berechne_korigierten_bremswert(self, name: str = None, ausgangs_wert: int = 0) -> int:
+        return min(max(ausgangs_wert + self.korrekturwerte_bremse.get(name, 0), 0), 100)
 
-    def bremseMinusMinus(self):
-        self.setBremse(self.bremse - 5)
+    def bremseMinus(self, name: str | None = None):
+        self.korrigiere_bremswert(wert=self.bremse - 1 if name is None else -1, name=name)
 
-    def bremsePlus(self):
-        self.setBremse(self.bremse + 1)
+    def bremseMinusMinus(self, name: str | None = None):
+        self.korrigiere_bremswert(wert=self.bremse - 5 if name is None else -5, name=name)
 
-    def bremsePlusPlus(self):
-        self.setBremse(self.bremse + 5)
+    def bremsePlus(self, name: str | None = None):
+        self.korrigiere_bremswert(wert=self.bremse + 1 if name is None else 1, name=name)
+
+    def bremsePlusPlus(self, name: str | None = None):
+        self.korrigiere_bremswert(wert=self.bremse + 5 if name is None else 5, name=name)
 
     def lese_distance(self) -> int:
         return self.distanze * self.max_anzahl_werte + int(self.device_werte.distanze)
@@ -82,3 +87,4 @@ class Ergometer:
         if neue_zeiten := sorted(set_mit_zeiten_ohne_nullen - set(self.cad_zeitenliste[-4:])):
             self.cad_zeitenliste = self.cad_zeitenliste[:] + neue_zeiten
         return tuple(neue_zeiten)
+
