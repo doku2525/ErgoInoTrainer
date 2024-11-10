@@ -174,12 +174,14 @@ class ApplikationController:
                               update_device_werte(self.modell.board.device_daten))
 
     def update_daten(self, status: Status, daten_modell: ViewDatenModell) -> tuple[Status, ViewDatenModell]:
+        # TODO Unterteile in Updates, die waherend der Pause nicht durchgefuehrt werden muessen und staendigen
         status.update_werte_nach_trainingsplan()
         status.modell.trainingsprogramm.verarbeite_messwerte(status.gestoppte_zeit.als_ms(),
                                                              status.modell.ergo.lese_distance())
         self.update_ergometer(status)
-        status.modell.zonen.updateZone(pwm=status.berechne_pwm_wert() / 100, zeit=status.gestoppte_zeit,
-                                       dist=status.modell.ergo.lese_distance(), herz=0)
+        if not status.modell.uhr.macht_pause():
+            status.modell.zonen.updateZone(pwm=status.berechne_pwm_wert() / 100, zeit=status.gestoppte_zeit,
+                                           dist=status.modell.ergo.lese_distance(), herz=0)
         neue_daten = update_daten_modell(daten_modell=daten_modell, status=status)
         return status, neue_daten
 
