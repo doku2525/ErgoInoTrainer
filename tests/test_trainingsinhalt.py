@@ -1,6 +1,7 @@
 from unittest import TestCase
 
-from trainingsinhalt import Trainingsinhalt, BelastungTypen, Dauermethode, Trainingswerte, Funktionsmethode
+from src.classes.trainingsinhalt import BelastungTypen, Dauermethode
+
 
 class test_Trainingsinhalt(TestCase):
     def setUp(self):

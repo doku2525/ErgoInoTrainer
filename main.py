@@ -1,15 +1,12 @@
 import sys
-from tkinter import simpledialog, messagebox
+from tkinter import simpledialog
 
-from applikationmodel import ApplikationModell
-from applikationcontroller import ApplikationController
-from applikationview import ApplikationView
-from boardconnector import BoardConnector, suche_ports
-from ergometerdevice import ArduinoDevice
-from flaskview import FlaskView
-from trainingsprogramm import Trainingsprogramm
-import trainingsprogramm as tp
-
+from src.classes.applikationmodel import ApplikationModell
+from src.classes.applikationcontroller import ApplikationController
+from src.classes.applikationview import ApplikationView
+from src.classes.flaskview import FlaskView
+from src.classes.trainingsprogramm import Trainingsprogramm
+from src.classes import trainingsprogramm as tp
 
 meine_trainings_programme = [
     ("G1 locker", "erzeuge_trainingsprogramm_G1(dauer_in_minuten=95, pwm=34, cad=100)",

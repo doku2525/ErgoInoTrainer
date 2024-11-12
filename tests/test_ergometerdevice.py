@@ -1,7 +1,7 @@
 from unittest import TestCase
 from unittest.mock import patch
 import serial
-from ergometerdevice import ArduinoDevice, ArduinoSimulator, ErgometerDevice, convert_to_arduino_command
+from src.classes.ergometerdevice import ArduinoDevice, ArduinoSimulator, convert_to_arduino_command
 
 
 class test_ErgometerDevice(TestCase):
@@ -36,7 +36,7 @@ class test_ErgometerDevice(TestCase):
                                                                                konverter=lambda x: "A".encode()))
 
     def test_lese_deviceinfos(self):
-        with patch('ergometerdevice.ArduinoDevice.empfange_daten_von_device') as mock_empfange_von_device:
+        with patch('src.classes.ergometerdevice.ArduinoDevice.empfange_daten_von_device') as mock_empfange_von_device:
 
             # Simuliere die Rückgabewerte von empfange_von_device
             mock_empfange_von_device.side_effect = [

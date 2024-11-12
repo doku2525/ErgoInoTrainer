@@ -1,10 +1,10 @@
 from unittest import TestCase
 
-import trainingsinhalt
-from trainingsprogramm import (Trainingsprogramm, erzeuge_trainingsprogramm_G1,
-                               erzeuge_trainingsprogramm_G2Intervall, erzeuge_trainingsprogramm_Tabata,
-                               erzeuge_trainingsprogramm_G1_mit_sprints)
-from trainingsinhalt import Dauermethode
+from src.classes import trainingsinhalt
+from src.classes.trainingsprogramm import (Trainingsprogramm, erzeuge_trainingsprogramm_G1,
+                                           erzeuge_trainingsprogramm_G2Intervall, erzeuge_trainingsprogramm_Tabata,
+                                           erzeuge_trainingsprogramm_G1_mit_sprints)
+from src.classes.trainingsinhalt import Dauermethode
 import copy
 
 

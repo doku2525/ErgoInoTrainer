@@ -1,11 +1,11 @@
 from typing import Callable
 import time
 import serial
-from boardconnector import BoardConnector, suche_ports, meine_ports
-from ergometerdevice import ArduinoDevice
-from ergometer import Ergometer
-from stoppuhr import Stoppuhr, FlexibleZeit, ZE
-from zonen import Zonen
+from src.classes.boardconnector import BoardConnector, suche_ports, meine_ports
+from src.classes.ergometerdevice import ArduinoDevice
+from src.classes.ergometer import Ergometer
+from src.classes.stoppuhr import Stoppuhr, FlexibleZeit, ZE
+from src.classes.zonen import Zonen
 
 
 class ApplikationModell:

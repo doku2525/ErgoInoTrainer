@@ -2,7 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
 
-from ergometerdevice import ArduinoDevice
+from src.classes.ergometerdevice import ArduinoDevice
 
 
 @dataclass(frozen=True)

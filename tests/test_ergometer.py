@@ -1,7 +1,7 @@
 from unittest import TestCase
 from dataclasses import replace
-from ergometer import Ergometer
-from devicedatenmodell import ArduinoDatenModell
+from src.classes.ergometer import Ergometer
+from src.classes.devicedatenmodell import ArduinoDatenModell
 
 
 class test_Ergometer(TestCase):

@@ -1,9 +1,7 @@
 from unittest import TestCase
 from dataclasses import replace
-from pygame.mixer import music
-import time
-import audiomodul
-from trainingsprogramm import erzeuge_trainingsprogramm_Tabata, erzeuge_trainingsprogramm_G2Intervall
+from src.modules import audiomodul
+from src.classes.trainingsprogramm import erzeuge_trainingsprogramm_Tabata, erzeuge_trainingsprogramm_G2Intervall
 
 
 class test_Audiomodul(TestCase):
@@ -73,7 +71,7 @@ class test_Audiomodul(TestCase):
         self.assertEqual(10, len(audiomodul.build_playlist(trainingsplan=plan, audio_objekte=audio)))
         self.assertEqual(0,
                          audiomodul.build_playlist(trainingsplan=plan, audio_objekte=audio)[0][0])
-        self.assertEqual(600000+8*30000,
+        self.assertEqual(600000 + 8 * 30000,
                          audiomodul.build_playlist(trainingsplan=plan, audio_objekte=audio)[-1][0])
 
     def test_play_audio_schedule(self):
@@ -109,7 +107,7 @@ class test_Audiomodul(TestCase):
         self.assertEqual([playlist[0]],
                          audiomodul.play_audio_schedule(playlist=playlist[1:],
                                                         aktuelle_zeit_in_ms=playlist[0].endzeit - 1000,
-                                                        busy_status=True)[0],)
+                                                        busy_status=True)[0], )
         self.assertEqual(playlist[1:],
                          audiomodul.play_audio_schedule(playlist=playlist[1:],
                                                         aktuelle_zeit_in_ms=playlist[0].endzeit - 1000,
@@ -128,7 +126,7 @@ class test_Audiomodul(TestCase):
         self.assertEqual(playlist[:2],
                          audiomodul.play_audio_schedule(playlist=playlist[1:],
                                                         aktuelle_zeit_in_ms=playlist[0].endzeit - 0,
-                                                        busy_status=True)[0],)
+                                                        busy_status=True)[0], )
         self.assertEqual(playlist[2:],
                          audiomodul.play_audio_schedule(playlist=playlist[1:],
                                                         aktuelle_zeit_in_ms=playlist[0].endzeit - 0,

@@ -1,7 +1,6 @@
 from unittest import TestCase
 
-import stoppuhr
-from stoppuhr import Stoppuhr, FlexibleZeit, ZE
+from src.classes.stoppuhr import Stoppuhr, FlexibleZeit, ZE
 
 
 class test_Stoppuhr(TestCase):

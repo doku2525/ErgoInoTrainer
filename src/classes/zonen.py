@@ -1,5 +1,5 @@
 import copy
-from stoppuhr import FlexibleZeit
+from src.classes.stoppuhr import FlexibleZeit
 
 
 class Zonen:

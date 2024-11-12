@@ -1,5 +1,5 @@
-import trainingsinhalt
-from trainingsinhalt import Trainingsinhalt
+import src.classes.trainingsinhalt as trainingsinhalt
+from src.classes.trainingsinhalt import Trainingsinhalt
 
 
 class Trainingsprogramm:

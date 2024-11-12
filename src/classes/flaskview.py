@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, render_template
 from threading import Thread
 
-from viewdatenmodell import ViewDatenModell
+from src.classes.viewdatenmodell import ViewDatenModell
 
 
 class FlaskView:

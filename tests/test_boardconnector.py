@@ -1,9 +1,9 @@
 from unittest import TestCase
 from unittest.mock import patch
 import serial
-from boardconnector import BoardConnector, suche_ports
-from ergometerdevice import ArduinoSimulator, ArduinoDevice
-from devicedatenmodell import ArduinoDatenModell
+from src.classes.boardconnector import BoardConnector, suche_ports
+from src.classes.ergometerdevice import ArduinoSimulator, ArduinoDevice
+from src.classes.devicedatenmodell import ArduinoDatenModell
 
 
 class test_ArduinoBoard(TestCase):

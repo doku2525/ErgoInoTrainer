@@ -3,15 +3,14 @@ from typing import Callable
 import sys
 import pygame
 import datetime
-import time
 
 from applikationmodel import ApplikationModell
 from applikationview import ApplikationView
 from datenprozessor import DatenProcessor
-from stoppuhr import FlexibleZeit, ZE
+from stoppuhr import FlexibleZeit
 from viewdatenmodell import ViewDatenModell
 import viewdatenmodell
-import audiomodul
+from src.modules import audiomodul
 
 
 def update_daten_modell(daten_modell: ViewDatenModell = ViewDatenModell(), status: Status = None) -> ViewDatenModell:

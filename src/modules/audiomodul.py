@@ -3,9 +3,9 @@ from collections import namedtuple
 import pygame.mixer
 from pygame.mixer import music
 
-from audioobjekt import AudioObjekt
-from trainingsprogramm import Trainingsprogramm
-from trainingsinhalt import Trainingsinhalt
+from src.classes.audioobjekt import AudioObjekt
+from src.classes.trainingsprogramm import Trainingsprogramm
+from src.classes.trainingsinhalt import Trainingsinhalt
 
 
 PlaylistAudioObjekt = namedtuple('PlaylistAudioObjekt', ['startzeit', 'endzeit', 'objekt'])
@@ -16,7 +16,7 @@ AUDIO_VOLUME: float = float(music.get_volume())
 AUDIO_VOLUME_FADINGOUT: bool = False
 AUDIOOBJEKT_AKTIVE: list[PlaylistAudioObjekt] = list()
 MEINE_AUDIO_OBJEKTE: list[AudioObjekt] = [
-    AudioObjekt(filename='daten/musik/tabata.wav', trainingsplan=['Tabata'],
+    AudioObjekt(filename='../../media/sounds/tabata.wav', trainingsplan=['Tabata'],
                 trainingsinhalt=['Intervall'], zeit_start=-10000, dauer=30000, prioritaet=(100, 50))
 ]
 

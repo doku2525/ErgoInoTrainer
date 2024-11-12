@@ -1,8 +1,8 @@
 from __future__ import annotations
 from typing import Optional
 from dataclasses import dataclass, field, replace
-from stoppuhr import FlexibleZeit
-from devicedatenmodell import DeviceDatenModell
+from src.classes.stoppuhr import FlexibleZeit
+from src.classes.devicedatenmodell import DeviceDatenModell
 
 
 @dataclass(frozen=True)

@@ -1,5 +1,5 @@
 from unittest import TestCase
-from devicedatenmodell import ArduinoDatenModell
+from src.classes.devicedatenmodell import ArduinoDatenModell
 
 class test_DeviceDatenModell(TestCase):
     def setUp(self):

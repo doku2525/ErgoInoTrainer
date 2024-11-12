@@ -1,10 +1,9 @@
 from unittest import TestCase
-from unittest.mock import patch
 import time
 
-from applikationmodel import ApplikationModell
-from stoppuhr import Stoppuhr, FlexibleZeit, ZE
-from boardconnector import BoardConnector
+from src.classes.applikationmodel import ApplikationModell
+from src.classes.stoppuhr import FlexibleZeit, ZE
+from src.classes.boardconnector import BoardConnector
 
 
 class test_ApplikationModell(TestCase):

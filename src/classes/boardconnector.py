@@ -1,8 +1,8 @@
 import serial
 import os.path
 import time
-from ergometerdevice import ErgometerDevice, ArduinoDevice
-from devicedatenmodell import DeviceDatenModell
+from src.classes.ergometerdevice import ErgometerDevice, ArduinoDevice
+from src.classes.devicedatenmodell import DeviceDatenModell
 
 meine_ports = ["/dev/ttyUSB0", "/dev/ttyUSB1", "/dev/ttyUSB2", "/dev/ttyUSB3", "/dev/ttyUSB4"]
 
