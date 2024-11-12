@@ -86,8 +86,9 @@ def erzeuge_trainingsprogramm_G1(dauer_in_minuten: int, pwm: int, cad: int,
     return Trainingsprogramm("G1", plan)
 
 
-def erzeuge_trainingsprogramm_G2Intervall(pwm: tuple[int, int], cad: tuple[int, int], warmfahrzeit: int = 10,
-                                          ausfahrzeit: int = 5, wiederholungen: int = 6) -> Trainingsprogramm:
+def erzeuge_trainingsprogramm_G2Intervall(pwm: tuple[int, int], cad: tuple[int, int],
+                                          warmfahrzeit: int = 10, ausfahrzeit: int = 5,
+                                          wiederholungen: int = 6, unendlich: bool = False) -> Trainingsprogramm:
     warmfahren = [
         trainingsinhalt.Dauermethode("Warmfahren", warmfahrzeit * 60 * 1000, cad[0], pwm[0],
                                      trainingsinhalt.BelastungTypen.G1),
@@ -98,11 +99,11 @@ def erzeuge_trainingsprogramm_G2Intervall(pwm: tuple[int, int], cad: tuple[int, 
         trainingsinhalt.Dauermethode("Ausfahren", ausfahrzeit * 60 * 1000, cad[0], pwm[0],
                                      trainingsinhalt.BelastungTypen.G1)
     ]
-    return Trainingsprogramm("G2Intervall", warmfahren + intervall + ausfahren)
+    return Trainingsprogramm("G2Intervall", warmfahren + intervall + ausfahren, unendlich=unendlich)
 
 
 def erzeuge_trainingsprogramm_Tabata(pwm: tuple[int, int], cad: tuple[int, int], warmfahrzeit: int | float = 10,
-                                     ausfahrzeit: int | float = 6) -> Trainingsprogramm:
+                                     ausfahrzeit: int | float = 6, unendlich: bool = False) -> Trainingsprogramm:
     zeit_pause = 10 / 60
     zeit_intervall = 20 / 60
     to_millis = 60 * 1000
@@ -117,7 +118,7 @@ def erzeuge_trainingsprogramm_Tabata(pwm: tuple[int, int], cad: tuple[int, int],
         trainingsinhalt.Dauermethode("Ausfahren", ausfahrzeit * to_millis, cad[0], pwm[0],
                                      trainingsinhalt.BelastungTypen.G1)
     ]
-    return Trainingsprogramm("Tabata", warmfahren + intervall + ausfahren)
+    return Trainingsprogramm("Tabata", warmfahren + intervall + ausfahren, unendlich=unendlich)
 
 
 def erzeuge_trainingsprogramm_G1_mit_sprints(pwm: tuple[int, int], cad: tuple[int, int], warmfahrzeit: int = 10,

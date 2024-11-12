@@ -69,12 +69,13 @@ class ApplikationView:
            (32, "Intervall {0}".format(self.daten.intervall_zeit), self.farbe_rot, (screen_breite - 145,
                                                                                     screen_hoehe - 28)),
            (32, "Pause {0}".format(""), self.farbe_gruen, (screen_breite - 145, screen_hoehe - 54)),
-           (32, "Sets {0}".format(self.daten.anzahl_sets), self.farbe_schwarz, (screen_breite - 145,
-                                                                                screen_hoehe - 80)),
-           (32, "Ziel {0}".format(8), self.farbe_schwarz, (screen_breite - 145, screen_hoehe - 106))]
+           (32, "Sets {0}".format(self.daten.anzahl_sets), self.farbe_rot, (screen_breite - 145,
+                                                                            screen_hoehe - 80)),
+           (32, "Zeit {0}".format(self.daten.trainings_gesamtzeit), self.farbe_schwarz, (screen_breite - 145,
+                                                                                         screen_hoehe - 106))]
         index = 0
         werte = self.daten.werte_und_power
-        if type(werte) == int:
+        if isinstance(werte, int):
             werte = {}
         for key in sorted(werte.keys()):
             tmp.append((22, "{0}{1}{2}{3}".format(

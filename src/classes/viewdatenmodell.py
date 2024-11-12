@@ -3,6 +3,7 @@ import datetime
 
 daten_field_names = ['trainings_name',
                      'trainings_inhalt',
+                     'trainings_gesamtzeit',
                      'zeit_gesamt',
                      'zeit_timer',
                      'zeit_timer_string',

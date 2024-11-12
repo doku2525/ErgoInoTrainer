@@ -21,8 +21,9 @@ def update_daten_modell(daten_modell: ViewDatenModell = ViewDatenModell(), statu
                               trainingszeit_dauer_aktueller_inhalt(status.gestoppte_zeit.als_ms()))
         if berechnete_zeit == status.modell.trainingsprogramm.fuehre_aus(status.gestoppte_zeit.als_ms()).dauer():
             return int(berechnete_zeit / 1000)
-        else:
-            return int(berechnete_zeit / 1000) + 1
+        if berechnete_zeit < 0:     # Verhindert, dass am Ende des Trainings 2, 1, 1, 0, -1 gezaehlt wird
+            return int(berechnete_zeit / 1000)
+        return int(berechnete_zeit / 1000) + 1
 
     if status is None:
         return daten_modell
@@ -49,6 +50,8 @@ def update_daten_modell(daten_modell: ViewDatenModell = ViewDatenModell(), statu
         'device_werte': str(status.modell.board.device_daten.__dict__),
         'trainings_name': status.modell.trainingsprogramm.name,
         'trainings_inhalt': status.modell.trainingsprogramm.fuehre_aus(status.gestoppte_zeit.als_ms()).name,
+        'trainings_gesamtzeit': str(datetime.timedelta(milliseconds=
+                                                       status.modell.trainingsprogramm.trainingszeit_dauer_gesamt())),
         'intervall_distanze': status.modell.trainingsprogramm.berechne_distanze_aktueller_inhalt(),
         'intervall_cad': round(status.modell.trainingsprogramm.berechne_distanze_aktueller_inhalt() * 60 /
                                (status.modell.trainingsprogramm.trainingszeit_dauer_aktueller_inhalt(
@@ -110,6 +113,11 @@ class Status:
     def berechne_pwm_wert(self) -> int:
         return self.modell.ergo.berechne_korigierten_bremswert(ausgangs_wert=self.werte_nach_trainngsplan[1],
                                                                name=self.werte_nach_trainngsplan[0])
+
+    def trainingsende_pause_machen(self) -> bool:
+        return (self.es_ist_zeit_fuer_update() and
+                self.modell.trainingsprogramm.trainingszeit_dauer_gesamt() < self.gestoppte_zeit.als_ms() and
+                not self.modell.trainingsprogramm.unendlich)
 
 
 class ApplikationController:
@@ -266,6 +274,12 @@ class ApplikationController:
             # ********
             # Zeichne/Schreibe Logdatei
             self.zeichne_view_und_log(status, daten_modell)
+
+            if status.trainingsende_pause_machen():
+                status.gedrueckte_taste = "PAUSE"
+                funct, args = self.command_mapper(status)
+                funct(**args)
+                status.modell.trainingsprogramm.unendlich = True
 
             # ********
             # Setze MEINEN 1-Sekunden-Timer
