@@ -50,8 +50,9 @@ def update_daten_modell(daten_modell: ViewDatenModell = ViewDatenModell(), statu
         'device_werte': str(status.modell.board.device_daten.__dict__),
         'trainings_name': status.modell.trainingsprogramm.name,
         'trainings_inhalt': status.modell.trainingsprogramm.fuehre_aus(status.gestoppte_zeit.als_ms()).name,
-        'trainings_gesamtzeit': str(datetime.timedelta(milliseconds=
-                                                       status.modell.trainingsprogramm.trainingszeit_dauer_gesamt())),
+        'trainings_gesamtzeit': (str(
+            datetime.timedelta(milliseconds=status.modell.trainingsprogramm.trainingszeit_dauer_gesamt())) +
+            (' ∞' if status.modell.trainingsprogramm.unendlich else ' x')),
         'intervall_distanze': status.modell.trainingsprogramm.berechne_distanze_aktueller_inhalt(),
         'intervall_cad': round(status.modell.trainingsprogramm.berechne_distanze_aktueller_inhalt() * 60 /
                                (status.modell.trainingsprogramm.trainingszeit_dauer_aktueller_inhalt(
@@ -78,7 +79,8 @@ def update_daten_modell(daten_modell: ViewDatenModell = ViewDatenModell(), statu
 
 
 class Status:
-    def __init__(self, modell: ApplikationModell, schleifen_zeit_in_ms: int = 1000):
+    def __init__(self, modell: ApplikationModell, schleifen_zeit_in_ms: int = 1000,
+                 pause_nach_aktuellem_inhalt: bool = False):
         self.gedrueckte_taste = ''
         self.modell: ApplikationModell = modell
         self.gestoppte_zeit: FlexibleZeit = self.modell.akuelle_zeit()
@@ -87,6 +89,7 @@ class Status:
         self.werte_nach_trainngsplan = None
         self.audio_playlist = audiomodul.build_playlist(trainingsplan=modell.trainingsprogramm,
                                                         audio_objekte=audiomodul.MEINE_AUDIO_OBJEKTE)
+        self.pause_nach_aktuellem_inhalt = pause_nach_aktuellem_inhalt
 
     def programm_beenden(self) -> bool:
         return self.gedrueckte_taste == 'QUIT'
@@ -119,6 +122,13 @@ class Status:
                 self.modell.trainingsprogramm.trainingszeit_dauer_gesamt() < self.gestoppte_zeit.als_ms() and
                 not self.modell.trainingsprogramm.unendlich)
 
+    def pause_am_ende_des_aktuellen_inahlts(self) -> bool:
+        berechnete_zeit = (self.modell.trainingsprogramm.
+                           trainingszeit_dauer_aktueller_inhalt(self.gestoppte_zeit.als_ms()))
+        return (self.es_ist_zeit_fuer_update() and
+                self.pause_nach_aktuellem_inhalt and
+                self.modell.trainingsprogramm.trainingszeit_dauer_aktueller_inhalt(self.gestoppte_zeit.als_ms()) < 100)
+
 
 class ApplikationController:
 
@@ -130,8 +140,8 @@ class ApplikationController:
         self.log_file: str = log_file
 
     @staticmethod
-    def key_mapper(key: int) -> str:
-        key_bindings = {
+    def key_mapper(key: int, modifier: int = 0) -> str:
+        key_bindings_ohne_mod = {
             pygame.K_LEFT: "PWM-",
             pygame.K_RIGHT: "PWM+",
             pygame.K_UP: "PWM++",
@@ -141,9 +151,15 @@ class ApplikationController:
             pygame.K_m: "MUSIK_MUTE",
             pygame.K_KP_PERIOD: "MUSIK_MUTE",           # DEL/.-Taste Nummernblock
             pygame.K_KP_MULTIPLY: "MUSIK_LAUTER",       # *-Taste Nummernblock
-            pygame.K_KP_DIVIDE: "MUSIK_LAUTER"          # /-Taste Nummernblock
+            pygame.K_KP_DIVIDE: "MUSIK_LAUTER",          # /-Taste Nummernblock
+            pygame.K_e: "PAUSE_NACH_INHALT"
         }
-        return key_bindings.get(key, "")
+        key_bindings_shift_mod = {                      # Mit gedrueckter SHIFT-Taste
+            pygame.K_e: "CHANGE_TRANINGSPROGRAMM_UNENDLICH"
+        }
+        if modifier in [pygame.KMOD_SHIFT, pygame.KMOD_LSHIFT, pygame.KMOD_RSHIFT]:
+            return key_bindings_shift_mod.get(key, "")
+        return key_bindings_ohne_mod.get(key, "")
 
     def command_mapper(self, status: Status) -> Callable:
         def pause_mit_zeit():
@@ -151,6 +167,13 @@ class ApplikationController:
                 self.modell.uhr = self.modell.uhr.start(self.modell.millis_jetzt())
             else:
                 self.modell.uhr = self.modell.uhr.pause(self.modell.millis_jetzt())
+
+        def pause_nach_inhalt() -> None:
+            status.pause_nach_aktuellem_inhalt = not status.pause_nach_aktuellem_inhalt
+
+        def change_unendlich_status_in_trainingsprogramm() -> None:
+            print(f"Status veraendert: {status.modell.trainingsprogramm.unendlich}")
+            status.modell.trainingsprogramm.unendlich = not status.modell.trainingsprogramm.unendlich
 
         # Das Komando besteht aus einem tupel[Callable, dict[args]]
         command_map = {
@@ -162,7 +185,9 @@ class ApplikationController:
             "PAUSE": (pause_mit_zeit, {}),
             "MUSIK_MUTE": (audiomodul.mute, {}),
             "MUSIK_LAUTER": (audiomodul.lauter, {}),
-            "MUSIK_LEISER": (audiomodul.leiser, {})
+            "MUSIK_LEISER": (audiomodul.leiser, {}),
+            "PAUSE_NACH_INHALT": (pause_nach_inhalt, {}),
+            "CHANGE_TRANINGSPROGRAMM_UNENDLICH": (change_unendlich_status_in_trainingsprogramm, {})
         }
         return command_map.get(status.gedrueckte_taste, lambda: None)
 
@@ -175,8 +200,8 @@ class ApplikationController:
                 self.beende_programm()
                 sys.exit()
             if event.type == pygame.KEYDOWN:
-                # print(f"Taste: {event.key}")  # TODO Zum Ermitteln eines Taste-CODES die Zeile auskommentieren
-                status.gedrueckte_taste = ApplikationController.key_mapper(event.key)
+                # print(f"Taste: {event.key} {event.mod}")  # TODO Zum Ermitteln eines Taste-CODES die Zeile auskommentieren
+                status.gedrueckte_taste = ApplikationController.key_mapper(event.key, event.mod)
                 if status.gedrueckte_taste:
                     # Fuehre den zur gedrueckten Taste passenden Befehl aus.
                     funktion, argumente = self.command_mapper(status)
@@ -280,6 +305,12 @@ class ApplikationController:
                 funct, args = self.command_mapper(status)
                 funct(**args)
                 status.modell.trainingsprogramm.unendlich = True
+
+            if status.pause_am_ende_des_aktuellen_inahlts():
+                status.gedrueckte_taste = "PAUSE"
+                funct, args = self.command_mapper(status)
+                funct(**args)
+                status.pause_nach_aktuellem_inhalt = False
 
             # ********
             # Setze MEINEN 1-Sekunden-Timer

@@ -58,7 +58,7 @@ def main():
         'daten/log/trainer.tmp',
         None
     ]
-    log_file = log_files[1]
+    log_file = log_files[-1]
 
     mein_modell = ApplikationModell()   # Als Standard wird ArduinoBoard in ApplikationModell initialisiert
     mein_modell.trainingsprogramm, eingabe = waehle_trainingsprogramm_tkinter(meine_programme=meine_trainings_programme)
