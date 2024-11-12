@@ -54,11 +54,11 @@ def log_file_warnung_tkinter(log_files: list[str]) -> str | None:
 def main():
 
     log_files = [
-        'daten/trainer.log',
-        'daten/trainer.tmp',
+        'daten/log/trainer.log',
+        'daten/log/trainer.tmp',
         None
     ]
-    log_file = log_files[2]
+    log_file = log_files[-1]
 
     mein_modell = ApplikationModell()   # Als Standard wird ArduinoBoard in ApplikationModell initialisiert
     mein_modell.trainingsprogramm, eingabe = waehle_trainingsprogramm_tkinter(meine_programme=meine_trainings_programme)
