@@ -253,7 +253,8 @@ class ApplikationController:
             # ********
             # Eingabe Zeit, Devices, Tastatur
             status.update_zeit()
-            self.modell.board.sendeUndLeseWerte(status.berechne_pwm_wert())     # ErgometerDevice
+            self.modell.board.sendeUndLeseWerte(            # Wenn pause sende 0 an Arduino, damit summen aufhoert
+                status.berechne_pwm_wert() if not status.modell.uhr.macht_pause() else 0)     # ErgometerDevice
 
             # TODO Implementiere Eingabe Herzfrequenz
             status = self.process_tastatureingabe(status)

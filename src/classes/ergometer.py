@@ -27,6 +27,7 @@ class Ergometer:
                                                                    in self.korrekturwerte_bremse.items()})
 
     def berechne_korigierten_bremswert(self, name: str = None, ausgangs_wert: int = 0) -> int:
+        # Diese Funktion berechnet den eigentlich Wert, der ans Device gesendet wird
         return min(max(ausgangs_wert + self.korrekturwerte_bremse.get(name, 0), 0), 100)   # 0 <= x <= 100
 
     def bremseMinus(self, name: str | None = None) -> Ergometer:
