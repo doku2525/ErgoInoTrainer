@@ -1,7 +1,7 @@
 # import bangla
 import pygame
 
-from viewdatenmodell import ViewDatenModell
+from src.classes.viewdatenmodell import ViewDatenModell
 
 
 class ApplikationView:

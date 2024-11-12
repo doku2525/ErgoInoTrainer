@@ -4,12 +4,12 @@ import sys
 import pygame
 import datetime
 
-from applikationmodel import ApplikationModell
-from applikationview import ApplikationView
-from datenprozessor import DatenProcessor
-from stoppuhr import FlexibleZeit
-from viewdatenmodell import ViewDatenModell
-import viewdatenmodell
+from src.classes.applikationmodel import ApplikationModell
+from src.classes.applikationview import ApplikationView
+from src.classes.datenprozessor import DatenProcessor
+from src.classes.stoppuhr import FlexibleZeit
+from src.classes.viewdatenmodell import ViewDatenModell
+import src.classes.viewdatenmodell as viewdatenmodell
 from src.modules import audiomodul
 
 

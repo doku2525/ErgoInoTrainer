@@ -16,7 +16,7 @@ AUDIO_VOLUME: float = float(music.get_volume())
 AUDIO_VOLUME_FADINGOUT: bool = False
 AUDIOOBJEKT_AKTIVE: list[PlaylistAudioObjekt] = list()
 MEINE_AUDIO_OBJEKTE: list[AudioObjekt] = [
-    AudioObjekt(filename='../../media/sounds/tabata.wav', trainingsplan=['Tabata'],
+    AudioObjekt(filename='media/sounds/tabata.wav', trainingsplan=['Tabata'],
                 trainingsinhalt=['Intervall'], zeit_start=-10000, dauer=30000, prioritaet=(100, 50))
 ]
 

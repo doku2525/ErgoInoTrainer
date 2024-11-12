@@ -1,10 +1,13 @@
 from unittest import TestCase
 from dataclasses import replace
+import os
 from src.modules import audiomodul
 from src.classes.trainingsprogramm import erzeuge_trainingsprogramm_Tabata, erzeuge_trainingsprogramm_G2Intervall
 
 
 class test_Audiomodul(TestCase):
+
+
     def test_lautstaerke(self):
         self.assertAlmostEqual(audiomodul.AUDIO_VOLUME, audiomodul.lautstaerke(), delta=0.025)
         self.assertGreaterEqual(1.0, audiomodul.lautstaerke())
