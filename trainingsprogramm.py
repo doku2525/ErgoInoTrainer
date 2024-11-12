@@ -5,7 +5,7 @@ from trainingsinhalt import Trainingsinhalt
 class Trainingsprogramm:
     def __init__(self, name: str, inhalte: list[Trainingsinhalt], ergebnisse: list = None, unendlich: bool = True):
         self.name = name
-        self.inhalte = inhalte  # Liste von Phase-Objekten
+        self.inhalte = inhalte  # Liste von Trainingsinhalt-Objekten
         self.ergebnisse = [] if ergebnisse is None else ergebnisse
         self.unendlich = unendlich  # FALSE = Beende die Ausfuehrung nach erreichen der Gesamttrainingszeit
 
