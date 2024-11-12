@@ -11,6 +11,7 @@ from datenprozessor import DatenProcessor
 from stoppuhr import FlexibleZeit, ZE
 from viewdatenmodell import ViewDatenModell
 import viewdatenmodell
+import audiomodul
 
 
 def update_daten_modell(daten_modell: ViewDatenModell = ViewDatenModell(), status: Status = None) -> ViewDatenModell:
@@ -82,6 +83,8 @@ class Status:
         self.schleifen_zeit: FlexibleZeit = FlexibleZeit.create_from_millis(schleifen_zeit_in_ms)
         self.zeit_fuer_naechstes_update: FlexibleZeit = self.gestoppte_zeit + self.schleifen_zeit
         self.werte_nach_trainngsplan = None
+        self.audio_playlist = audiomodul.build_playlist(trainingsplan=modell.trainingsprogramm,
+                                                        audio_objekte=audiomodul.MEINE_AUDIO_OBJEKTE)
 
     def programm_beenden(self) -> bool:
         return self.gedrueckte_taste == 'QUIT'
@@ -92,7 +95,7 @@ class Status:
 
     def es_ist_zeit_fuer_update(self) -> bool:
         # !!! Bei (not gestoppte_zeit > self.zeit_fuer_naechstes_update) manchmal 2 Zeiten pro sek im Timer
-        # Z.B. 9 8 8 6 5 4 4 2
+        # Z.B. 9 8 8 6 5 4 4 2  TODO Den Kommentar irgendwann loeschen
         return self.gestoppte_zeit > self.zeit_fuer_naechstes_update
 
     def berechne_neue_updatezeit(self) -> Status:
@@ -128,6 +131,10 @@ class ApplikationController:
             pygame.K_DOWN: "PWM--",
             pygame.K_q: "QUIT",
             pygame.K_p: "PAUSE",
+            pygame.K_m: "MUSIK_MUTE",
+            pygame.K_KP_PERIOD: "MUSIK_MUTE",           # DEL/.-Taste Nummernblock
+            pygame.K_KP_MULTIPLY: "MUSIK_LAUTER",       # *-Taste Nummernblock
+            pygame.K_KP_DIVIDE: "MUSIK_LAUTER"          # /-Taste Nummernblock
         }
         return key_bindings.get(key, "")
 
@@ -145,7 +152,10 @@ class ApplikationController:
             "PWM+": (self.modell.ergo.bremsePlus, {'name': status.werte_nach_trainngsplan[0]}),
             "PWM--": (self.modell.ergo.bremseMinusMinus, {'name': status.werte_nach_trainngsplan[0]}),
             "PWM-": (self.modell.ergo.bremseMinus, {'name': status.werte_nach_trainngsplan[0]}),
-            "PAUSE": (pause_mit_zeit, {})
+            "PAUSE": (pause_mit_zeit, {}),
+            "MUSIK_MUTE": (audiomodul.mute, {}),
+            "MUSIK_LAUTER": (audiomodul.lauter, {}),
+            "MUSIK_LEISER": (audiomodul.leiser, {})
         }
         return command_map.get(status.gedrueckte_taste, lambda: None)
 
@@ -158,12 +168,12 @@ class ApplikationController:
                 self.beende_programm()
                 sys.exit()
             if event.type == pygame.KEYDOWN:
+                # print(f"Taste: {event.key}")  # TODO Zum Ermitteln eines Taste-CODES die Zeile auskommentieren
                 status.gedrueckte_taste = ApplikationController.key_mapper(event.key)
                 if status.gedrueckte_taste:
                     # Fuehre den zur gedrueckten Taste passenden Befehl aus.
                     funktion, argumente = self.command_mapper(status)
                     if isinstance(result := funktion(**argumente), self.modell.ergo.__class__):
-                        print(f"Bremse veraendert {result.__dict__}")
                         status.modell.ergo = result
 
         return status
@@ -173,10 +183,25 @@ class ApplikationController:
                               setBremse(status.werte_nach_trainngsplan[1]).
                               update_device_werte(self.modell.board.device_daten))
 
+    @staticmethod
+    def update_musik(status: Status) -> None:
+        # TODO Evtl. Musik mit Pausenfunktion syncronisieren
+        # TODO Zeige in GUI an, ob Playlist verfuegbar ist
+        result = audiomodul.play_audio_schedule(playlist=status.audio_playlist,
+                                                aktuelle_zeit_in_ms=status.gestoppte_zeit.als_ms(),
+                                                busy_status=pygame.mixer.music.get_busy())
+        audiomodul.AUDIOOBJEKT_AKTIVE, status.audio_playlist, (audiofunc, args) = result
+        audiofunc(**args)
+        if audiofunc == audiomodul.fadeout_musik:   # FLAG um doppeltes fadeout zu verhindern
+            audiomodul.AUDIO_VOLUME_FADINGOUT = True
+        elif args:
+            audiomodul.AUDIO_VOLUME_FADINGOUT = False
+
     def update_daten(self, status: Status, daten_modell: ViewDatenModell) -> tuple[Status, ViewDatenModell]:
         status.update_werte_nach_trainingsplan()
         status.modell.trainingsprogramm.verarbeite_messwerte(status.gestoppte_zeit.als_ms(),
                                                              status.modell.ergo.lese_distance())
+        self.update_musik(status)
         self.update_ergometer(status)
         status.modell.zonen.updateZone(pwm=status.berechne_pwm_wert() / 100, zeit=status.gestoppte_zeit,
                                        dist=status.modell.ergo.lese_distance(), herz=0)
