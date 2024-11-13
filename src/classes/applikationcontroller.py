@@ -32,7 +32,9 @@ def update_daten_modell(daten_modell: ViewDatenModell = ViewDatenModell(), statu
     return daten_modell._replace(**{
         'zeit_gesamt': str(datetime.timedelta(seconds=int(status.gestoppte_zeit.als_s()))),
         'zeit_timer': abs(berechneter_zeit_timer),
-        'zeit_timer_string': str(datetime.timedelta(seconds=abs(berechneter_zeit_timer))),
+        'zeit_timer_string': (str(
+            datetime.timedelta(seconds=abs(berechneter_zeit_timer))) +
+            ('\u2297' if status.pause_nach_aktuellem_inhalt else '')),
         'cad_frequenz': status.modell.ergo.lese_cadence(),
         'cad_durchschnitt': status.modell.ergo.calc_cad_durchschnitt(status.modell.akuelle_zeit().als_ms(), 1),
         'cad_aktuell': status.werte_nach_trainngsplan[2],
@@ -52,7 +54,7 @@ def update_daten_modell(daten_modell: ViewDatenModell = ViewDatenModell(), statu
         'trainings_inhalt': status.modell.trainingsprogramm.fuehre_aus(status.gestoppte_zeit.als_ms()).name,
         'trainings_gesamtzeit': (str(
             datetime.timedelta(milliseconds=status.modell.trainingsprogramm.trainingszeit_dauer_gesamt())) +
-            (' ∞' if status.modell.trainingsprogramm.unendlich else ' x')),
+            (' ∞' if status.modell.trainingsprogramm.unendlich else ' \u2297')),
         'intervall_distanze': status.modell.trainingsprogramm.berechne_distanze_aktueller_inhalt(),
         'intervall_cad': round(status.modell.trainingsprogramm.berechne_distanze_aktueller_inhalt() * 60 /
                                (status.modell.trainingsprogramm.trainingszeit_dauer_aktueller_inhalt(

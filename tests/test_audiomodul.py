@@ -1,12 +1,24 @@
 from unittest import TestCase
 from dataclasses import replace
 import os
+
+import src.modules.audiomodul
 from src.modules import audiomodul
 from src.classes.trainingsprogramm import erzeuge_trainingsprogramm_Tabata, erzeuge_trainingsprogramm_G2Intervall
+from src.classes.audioobjekt import AudioObjekt
 
 
 class test_Audiomodul(TestCase):
 
+    def setUp(self):
+        self.audio = [
+            AudioObjekt(filename='media/sounds/tabata.wav',
+                        trainingsplan=['Tabata'], trainingsinhalt=['Intervall'], zeit_start=-10000, dauer=30000,
+                        prioritaet=(100, 50)),
+            AudioObjekt(filename='media/sounds/tabata.wav', trainingsplan=['Tabata'], trainingsinhalt=['Warmfahren'],
+                        zeit_start=1000, dauer=30000, prioritaet=(10, 0), loops=-1),
+            AudioObjekt(filename='media/sounds/tabata.wav', trainingsplan=['Tabata'], trainingsinhalt=['Ausfahren'],
+                        zeit_start=1000, dauer=30000, prioritaet=(10, 0), loops=5)]
 
     def test_lautstaerke(self):
         self.assertAlmostEqual(audiomodul.AUDIO_VOLUME, audiomodul.lautstaerke(), delta=0.025)
@@ -51,23 +63,23 @@ class test_Audiomodul(TestCase):
 
     def test_build_playlist(self):
         plan = erzeuge_trainingsprogramm_G2Intervall(pwm=(1, 3), cad=(100, 100))
-        audio = audiomodul.MEINE_AUDIO_OBJEKTE
+        audio = self.audio
         self.assertEqual(0, len(audiomodul.build_playlist(trainingsplan=plan, audio_objekte=audio)))
 
         plan = erzeuge_trainingsprogramm_Tabata(pwm=(1, 3), cad=(100, 100))
-        audio = audiomodul.MEINE_AUDIO_OBJEKTE
+        audio = self.audio[:1]
         self.assertEqual(8, len(audiomodul.build_playlist(trainingsplan=plan, audio_objekte=audio)))
         for index in range(8):
             self.assertEqual(600000 - 10000 + index * 30000,
                              audiomodul.build_playlist(trainingsplan=plan, audio_objekte=audio)[index][0])
 
         plan = erzeuge_trainingsprogramm_Tabata(pwm=(1, 3), cad=(100, 100))
-        audio = (audiomodul.MEINE_AUDIO_OBJEKTE +
+        audio = (self.audio[:1] +
                  [replace(audiomodul.MEINE_AUDIO_OBJEKTE[0], trainingsinhalt=['Ausfahren'])])
         self.assertEqual(9, len(audiomodul.build_playlist(trainingsplan=plan, audio_objekte=audio)))
 
         plan = erzeuge_trainingsprogramm_Tabata(pwm=(1, 3), cad=(100, 100))
-        audio = (audiomodul.MEINE_AUDIO_OBJEKTE +
+        audio = (audiomodul.MEINE_AUDIO_OBJEKTE[:1] +
                  [replace(replace(audiomodul.MEINE_AUDIO_OBJEKTE[0], trainingsinhalt=['Ausfahren']), zeit_start=0),
                   replace(replace(audiomodul.MEINE_AUDIO_OBJEKTE[0], trainingsinhalt=['Warmfahren']), zeit_start=0),
                   replace(replace(audiomodul.MEINE_AUDIO_OBJEKTE[0], trainingsinhalt=['Irgendwas']), zeit_start=10000)])
@@ -79,8 +91,9 @@ class test_Audiomodul(TestCase):
 
     def test_play_audio_schedule(self):
         plan = erzeuge_trainingsprogramm_Tabata(pwm=(1, 3), cad=(100, 100))
-        audio = audiomodul.MEINE_AUDIO_OBJEKTE
-        playlist = audiomodul.build_playlist(trainingsplan=plan, audio_objekte=audio)
+        audio = self.audio
+        playlist_voll = audiomodul.build_playlist(trainingsplan=plan, audio_objekte=audio)
+        playlist = audiomodul.build_playlist(trainingsplan=plan, audio_objekte=audio)[1:-1]
         self.assertEqual([], audiomodul.AUDIOOBJEKT_AKTIVE)
         self.assertNotEqual([], playlist)
 
@@ -102,7 +115,7 @@ class test_Audiomodul(TestCase):
         self.assertEqual(audiomodul.play_musik,
                          audiomodul.play_audio_schedule(playlist=playlist[1:],
                                                         aktuelle_zeit_in_ms=playlist[0].startzeit + 5)[2][0])
-        self.assertEqual({'position': 5/1000},
+        self.assertEqual({'loops': 0, 'position': 5/1000},
                          audiomodul.play_audio_schedule(playlist=playlist[1:],
                                                         aktuelle_zeit_in_ms=playlist[0].startzeit + 5)[2][1])
 
@@ -142,7 +155,7 @@ class test_Audiomodul(TestCase):
                          audiomodul.play_audio_schedule(playlist=playlist[1:],
                                                         aktuelle_zeit_in_ms=playlist[0].endzeit - 0,
                                                         busy_status=True)[2][0])
-        self.assertEqual({'position': 0},
+        self.assertEqual({'loops': 0, 'position': 0},
                          audiomodul.play_audio_schedule(playlist=playlist[1:],
                                                         aktuelle_zeit_in_ms=playlist[0].endzeit - 0,
                                                         busy_status=True)[2][1])

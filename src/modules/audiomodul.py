@@ -16,10 +16,9 @@ AUDIO_VOLUME: float = float(music.get_volume())
 AUDIO_VOLUME_FADINGOUT: bool = False
 AUDIOOBJEKT_AKTIVE: list[PlaylistAudioObjekt] = list()
 MEINE_AUDIO_OBJEKTE: list[AudioObjekt] = [
-    AudioObjekt(filename='media/sounds/tabata.wav', trainingsplan=['Tabata'],
-                trainingsinhalt=['Intervall'], zeit_start=-10000, dauer=30000, prioritaet=(100, 50))
+    AudioObjekt(filename='media/sounds/tabata.wav', trainingsplan=['Tabata'], trainingsinhalt=['Intervall'],
+                zeit_start=-10000, dauer=30000, prioritaet=(100, 50))
 ]
-
 
 def lautstaerke(neuer_wert: float | None = None) -> float:
     if neuer_wert is not None:
@@ -52,9 +51,10 @@ def load_musik(objekt: AudioObjekt) -> bool:
     return music.get_busy()
 
 
-def load_und_play_musik(objekt: AudioObjekt, position: int = 0) -> bool:
+def load_und_play_musik(objekt: AudioObjekt, position: int = 0, loops: int = 0) -> bool:
+    print(f"Loops: {loops} LPM")
     music.load(objekt.filename)
-    music.play(0, position)
+    music.play(loops, position)
     return music.get_busy()
 
 
@@ -69,14 +69,16 @@ def stop_musik() -> bool:
     return music.get_busy()
 
 
-def stop_und_play_musik(position) -> bool:
+def stop_und_play_musik(position, loops: int = 0) -> bool:
+    print(f"Loops: {loops} SPM")
     music.stop()
-    music.play(0)
+    music.play(loops, 0)
     return music.get_busy()
 
 
-def play_musik(position) -> bool:
-    music.play(0)
+def play_musik(position, loops: int = 0) -> bool:
+    print(f"Loops: {loops} PM")
+    music.play(loops, 0)
     return music.get_busy()
 
 
@@ -109,40 +111,121 @@ def build_playlist(trainingsplan: Trainingsprogramm,
 
 
 def play_audio_schedule(playlist: list[PlaylistAudioObjekt] = None,
-                        aktuelle_zeit_in_ms: int = 0,
-                        busy_status: bool = False) -> (list[PlaylistAudioObjekt],
-                                                       list[PlaylistAudioObjekt],
-                                                       (Callable, dict)):
+                        aktuelle_zeit_in_ms: int = 0, busy_status: bool = False) -> (list[PlaylistAudioObjekt],
+                                                                                     list[PlaylistAudioObjekt],
+                                                                                     (Callable, dict)):
     def aktuelles_objekt_beendet() -> tuple[Callable, dict]:
         if playlist[0].objekt == AUDIOOBJEKT_AKTIVE[-1].objekt and aktuelle_zeit_in_ms >= playlist[0].startzeit:
-            return play_musik, {'position': (aktuelle_zeit_in_ms - playlist[0].startzeit)/1000}
+            print("aktuelles_objekt_beendet")
+            return play_musik, {'position': (aktuelle_zeit_in_ms - playlist[0].startzeit)/1000,
+                                'loops': playlist[0].objekt.loops}
         if playlist[0].objekt == AUDIOOBJEKT_AKTIVE[-1].objekt and aktuelle_zeit_in_ms < playlist[0].startzeit:
             return lambda: None, {}
         if playlist[0].objekt != AUDIOOBJEKT_AKTIVE[-1].objekt and aktuelle_zeit_in_ms >= playlist[0].startzeit:
             return load_und_play_musik, {'objekt': playlist[0].objekt,
-                                         'position': (aktuelle_zeit_in_ms - playlist[0].startzeit) / 1000}
+                                         'position': (aktuelle_zeit_in_ms - playlist[0].startzeit) / 1000,
+                                         'loops': playlist[0].objekt.loops}
         if playlist[0].objekt != AUDIOOBJEKT_AKTIVE[-1].objekt and aktuelle_zeit_in_ms < playlist[0].startzeit:
             return load_musik, {'objekt': playlist[0].objekt}
 
-    if not playlist:              # Leere Playliste mache nicht. Wenn Music laeuft, dann laeuft sie weiter
+    # bool-Funktionen um Zustand zu testen
+    def leere_playlist() -> bool:
+        return not playlist
+
+    def nochKeinObjektGeladen_PlayerBesetzt() -> bool:
+        return not AUDIOOBJEKT_AKTIVE and busy_status
+
+    def nochKeinObjektGeladen_PlayerFrei() -> bool:
+        return not AUDIOOBJEKT_AKTIVE and not busy_status
+
+    def nochKeinObjektGeladen_PlayerFrei_vorStartzeit() -> bool:
+        return nochKeinObjektGeladen_PlayerFrei() and aktuelle_zeit_in_ms < playlist[0].startzeit
+
+    def nochKeinObjektGeladen_PlayerFrei_nachStartzeit() -> bool:
+        return nochKeinObjektGeladen_PlayerFrei() and aktuelle_zeit_in_ms >= playlist[0].startzeit
+
+    def objektGeladen_PlayerFrei() -> bool:
+        return AUDIOOBJEKT_AKTIVE and not busy_status
+
+    def objektGeladen_PlayerFrei_vorStartzeit() -> bool:
+        return objektGeladen_PlayerFrei() and aktuelle_zeit_in_ms < AUDIOOBJEKT_AKTIVE[-1].startzeit
+
+    def objektGeladen_PlayerFrei_nachStartzeit() -> bool:
+        return objektGeladen_PlayerFrei() and aktuelle_zeit_in_ms >= AUDIOOBJEKT_AKTIVE[-1].startzeit
+
+    def objektGeladen_PlayerBesetzt() -> bool:
+        return AUDIOOBJEKT_AKTIVE and busy_status
+
+    def objektGeladen_PlayerBesetzt_vorEndzeit() -> bool:
+        return objektGeladen_PlayerBesetzt() and aktuelle_zeit_in_ms < AUDIOOBJEKT_AKTIVE[-1].endzeit
+
+    def objektGeladen_PlayerBesetzt_imFadeoutbereich() -> bool:
+        return objektGeladen_PlayerBesetzt() and aktuelle_zeit_in_ms >= AUDIOOBJEKT_AKTIVE[-1].endzeit - 1000
+
+    def objektGeladen_PlayerBesetzt_nachEndzeit() -> bool:
+        return objektGeladen_PlayerBesetzt() and aktuelle_zeit_in_ms >= AUDIOOBJEKT_AKTIVE[-1].endzeit
+
+    def objektGeladen_PlayerBesetzt_nachEndzeit_vorNaechster():
+        return objektGeladen_PlayerBesetzt_nachEndzeit() and aktuelle_zeit_in_ms < playlist[0].startzeit
+
+    def objektGeladen_PlayerBesetzt_nachEndzeit_nachNaechster():
+        return not objektGeladen_PlayerBesetzt_nachEndzeit_vorNaechster()
+
+    # ----- Begin
+    # TODO Benutze anderen Variablennamen: (playerUnloaded,playerLoaded), (playerBusy,playerNotbusy)
+    # ---- Player leer
+    if leere_playlist():                                                # Mache NICHTS
         return AUDIOOBJEKT_AKTIVE, [], (lambda: None, {})
-    if not AUDIOOBJEKT_AKTIVE and busy_status:
+    if nochKeinObjektGeladen_PlayerBesetzt():                           # FEHLER! Player wird von anderem benutzt
         raise RuntimeError("Musicplayer beschaeftig, obwohl kein Objekt geladen wurde.")
-    if not AUDIOOBJEKT_AKTIVE and not busy_status and aktuelle_zeit_in_ms < playlist[0].startzeit:
-        return playlist[:1], playlist[1:], (load_musik, {'objekt': playlist[0].objekt})
-    if not AUDIOOBJEKT_AKTIVE and not busy_status and aktuelle_zeit_in_ms > playlist[0].startzeit:
-        return playlist[:1], playlist[1:], (load_und_play_musik,
-                                            {'objekt': playlist[0].objekt,
-                                             'position': (aktuelle_zeit_in_ms - playlist[0].startzeit) / 1000})
-    if AUDIOOBJEKT_AKTIVE and busy_status and aktuelle_zeit_in_ms >= AUDIOOBJEKT_AKTIVE[-1].endzeit:
-        return AUDIOOBJEKT_AKTIVE + playlist[:1], playlist[1:], aktuelles_objekt_beendet()
-    if AUDIOOBJEKT_AKTIVE and busy_status and aktuelle_zeit_in_ms >= AUDIOOBJEKT_AKTIVE[-1].endzeit - 1000:
-        return AUDIOOBJEKT_AKTIVE, playlist, (fadeout_musik,
-                                              {'dauer': int(AUDIOOBJEKT_AKTIVE[-1].endzeit - aktuelle_zeit_in_ms)})
-    if AUDIOOBJEKT_AKTIVE and busy_status and aktuelle_zeit_in_ms < AUDIOOBJEKT_AKTIVE[-1].endzeit:
-        return AUDIOOBJEKT_AKTIVE, playlist, (lambda: None, {})
-    if AUDIOOBJEKT_AKTIVE and not busy_status and aktuelle_zeit_in_ms < AUDIOOBJEKT_AKTIVE[-1].startzeit:
-        return AUDIOOBJEKT_AKTIVE, playlist, (lambda: None, {})
-    if AUDIOOBJEKT_AKTIVE and not busy_status and aktuelle_zeit_in_ms >= AUDIOOBJEKT_AKTIVE[-1].startzeit:
+    if nochKeinObjektGeladen_PlayerFrei_vorStartzeit():                 # Lade Musik und warte
+        return (playlist[:1], playlist[1:],
+                (load_musik, {'objekt': playlist[0].objekt}))
+    if nochKeinObjektGeladen_PlayerFrei_nachStartzeit():                # Lade Musik und Starte gleich
+        return (playlist[:1], playlist[1:],
+                (load_und_play_musik, {'objekt': playlist[0].objekt,
+                                       'position': (aktuelle_zeit_in_ms - playlist[0].startzeit) / 1000,
+                                       'loops': playlist[0].objekt.loops}))
+
+    # ---- Player Beschaeftigt
+    # Neues Lied muss beginnen. Hier kann spaeter die prioritaet mit eingebaut werden.
+    # TODO zweiten Vergleich in oberen Funktionen einbauen
+    if objektGeladen_PlayerBesetzt() and aktuelle_zeit_in_ms > playlist[0][0]:
+        return (AUDIOOBJEKT_AKTIVE + playlist[:1], playlist[1:],
+                aktuelles_objekt_beendet())
+    # Die Zeit ist abgelaufen, aber das Lied spielt noch. wenn loops nicht in [0,1], die Listen verschieben aber
+    # als Funktion nichts machen
+    # TODO zweiten Vergleich in oberen Funktionen einbauen
+    if (objektGeladen_PlayerBesetzt_nachEndzeit() and
+            not AUDIOOBJEKT_AKTIVE[-1].objekt.loops in [0, 1]):                 # Evtl. in Loop, Listen verschieben
+        return (AUDIOOBJEKT_AKTIVE + playlist[:1], playlist[1:],(lambda:None,{}))
+    # Die Zeit ist abgelaufen und objekt ist nicht in loops-modus, also beenden
+    # TODO zweiten Vergleich in oberen Funktionen einbauen
+    # TODO Ist dieser Test wirklich sinnvoll?
+    if (objektGeladen_PlayerBesetzt_nachEndzeit() and
+            AUDIOOBJEKT_AKTIVE[-1].objekt.loops in [0, 1]):                     # Evtl. in Loop, Listen verschieben
+        return (AUDIOOBJEKT_AKTIVE + playlist[:1], playlist[1:],
+                aktuelles_objekt_beendet())
+    # Wuerde Fadeout starten, wenn nicht loops waere
+    # TODO zweiten Vergleich in oberen Funktionen einbauen
+    if (objektGeladen_PlayerBesetzt_imFadeoutbereich() and
+            not AUDIOOBJEKT_AKTIVE[-1].objekt.loops in [0, 1]):                  # FadeoutBereich, aber da loops NICHTS
         return (AUDIOOBJEKT_AKTIVE, playlist,
-                (play_musik, {'position': (aktuelle_zeit_in_ms - AUDIOOBJEKT_AKTIVE[-1].startzeit) / 1000}))
+                (lambda: None, {}))
+    # Beginne Fadeout
+    # TODO zweiten Vergleich in oberen Funktionen einbauen
+    if (objektGeladen_PlayerBesetzt_imFadeoutbereich() and
+            AUDIOOBJEKT_AKTIVE[-1].objekt.loops in [0, 1]):                      # Starte Fadeout
+        return (AUDIOOBJEKT_AKTIVE, playlist,
+                (fadeout_musik, {'dauer': int(AUDIOOBJEKT_AKTIVE[-1].endzeit - aktuelle_zeit_in_ms)}))
+    # !!Standardmodus!! Spiele Musik innerhalb meiner zugewiesenen Zeit. Keine Aktion
+    if objektGeladen_PlayerBesetzt_vorEndzeit():                                 # Mache NICHTS
+        return AUDIOOBJEKT_AKTIVE, playlist, (lambda: None, {})
+
+    # ---- Player frei
+    if objektGeladen_PlayerFrei_vorStartzeit():                         # Mache NICHTS
+        return AUDIOOBJEKT_AKTIVE, playlist, (lambda: None, {})
+    if objektGeladen_PlayerFrei_nachStartzeit():                        # Starte Player
+        return (AUDIOOBJEKT_AKTIVE, playlist,
+                (play_musik, {'position': (aktuelle_zeit_in_ms - AUDIOOBJEKT_AKTIVE[-1].startzeit) / 1000,
+                              'loops': AUDIOOBJEKT_AKTIVE[-1].objekt.loops}))
