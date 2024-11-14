@@ -1,12 +1,19 @@
 from flask import Flask, jsonify, render_template
 from threading import Thread
+import logging as lg
 
 from src.classes.viewdatenmodell import ViewDatenModell
 
 
 class FlaskView:
     def __init__(self, logging: bool = False):
-        self.app = Flask(__name__)
+        self.app = Flask(__name__, template_folder='../../templates')
+
+        # Logging deaktivieren:
+        lg.disable(lg.CRITICAL)
+        # Logging-Level anpassen (z.B. auf WARNING):
+        lg.basicConfig(level=lg.WARNING)
+
         self.app.logger.disabled = not logging
         self.daten = ViewDatenModell()
         self.browser_key = 'Inikey'
@@ -24,11 +31,11 @@ class FlaskView:
         @self.app.route('/input', methods=['POST'])
         def process_input():
             input_data = request.json  # Erwartet eine JSON-Nachricht
-            print("Request angekommen")
+            #print("Request angekommen")
             if 'key' in input_data:
                 key = input_data['key']
                 self.browser_key = key  # Speichere den letzten Schlüssel
-                print(jsonify({"status": "success", "key": key}))
+                #print(jsonify({"status": "success", "key": key}))
                 return jsonify({"status": "success", "key": key})
             return jsonify({"status": "error", "message": "No key provided"}), 400
 

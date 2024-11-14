@@ -256,8 +256,9 @@ class ApplikationController:
         for v in self.views:            # Falls mehrere Views benutzt werden
             v.daten = daten_modell
             v.draw_daten()
-            if hasattr(v, 'browser_key'):
-                print(f"Browserkey: {v.browser_key}")
+            # TODO Folgende Textzeilen funktionieren nicht
+            # if hasattr(v, 'browser_key'):
+            #     print(f"Browserkey: {v.browser_key}")
         pygame.event.pump()
 
     def programm_loop(self, fps: int = 50):
