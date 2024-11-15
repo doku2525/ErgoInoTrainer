@@ -233,6 +233,9 @@ class ApplikationController:
                                                 aktuelle_zeit_in_ms=status.gestoppte_zeit.als_ms(),
                                                 busy_status=pygame.mixer.music.get_busy())
         audiomodul.AUDIOOBJEKT_AKTIVE, status.audio_playlist, (audiofunc, args) = result
+        # Wenn Trainingszeit abgelaufen ist, lasse das letzte Lied auslaufen.
+        if status.gestoppte_zeit.als_ms() >= status.modell.trainingsprogramm.trainingszeit_dauer_gesamt():
+            return None
         audiofunc(**args)
         if audiofunc == audiomodul.fadeout_musik:   # FLAG um doppeltes fadeout zu verhindern
             audiomodul.AUDIO_VOLUME_FADINGOUT = True
