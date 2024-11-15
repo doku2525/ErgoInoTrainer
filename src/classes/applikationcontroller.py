@@ -159,7 +159,7 @@ class ApplikationController:
             pygame.K_m: "MUSIK_MUTE",
             pygame.K_KP_PERIOD: "MUSIK_MUTE",           # DEL/.-Taste Nummernblock
             pygame.K_KP_MULTIPLY: "MUSIK_LAUTER",       # *-Taste Nummernblock
-            pygame.K_KP_DIVIDE: "MUSIK_LAUTER",         # /-Taste Nummernblock
+            pygame.K_KP_DIVIDE: "MUSIK_LEISER",         # /-Taste Nummernblock
             pygame.K_e: "PAUSE_NACH_INHALT"
         }
         key_bindings_mit_shift_modifier = {                      # Mit gedrueckter SHIFT-Taste
@@ -210,7 +210,7 @@ class ApplikationController:
                 self.beende_programm()
                 sys.exit()
             if event.type == pygame.KEYDOWN:
-                print(f"Taste: {event.key} {event.mod}")  # TODO Zum Ermitteln eines Taste-CODES die Zeile auskommentieren
+                # print(f"Taste: {event.key} {event.mod}")  # TODO Zum Ermitteln eines Taste-CODES die Zeile auskommentieren
                 status.gedrueckte_taste = ApplikationController.key_mapper(event.key, event.mod)
                 if status.gedrueckte_taste:
                     # Fuehre den zur gedrueckten Taste passenden Befehl aus.
