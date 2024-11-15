@@ -103,7 +103,7 @@ def build_playlist(trainingsplan: Trainingsprogramm,
     Liefert Liste mit (startzeit, AudioObjekt) sortiert nach Startzeit
     :param trainingsplan: Traingsplan
     :param audio_objekte: AudioObjekt
-    :return: (startzeit: int, AudioObjekt)
+    :return: list[namedTuple[startzeit: int, endzeit: int, AudioObjekt)
     """
     # Definiere Hilfsfunktion, die fuer jedes Audioobjekt die totalen Startzeiten ermittelt
     def calc_startzeit_fuer_objekt(liste: list[Trainingsinhalt],
