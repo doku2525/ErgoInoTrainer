@@ -150,6 +150,7 @@ class ApplikationController:
             pygame.K_DOWN: "PWM--",
             pygame.K_q: "QUIT",
             pygame.K_p: "PAUSE",
+            pygame.K_SPACE: "PAUSE",
             pygame.K_m: "MUSIK_MUTE",
             pygame.K_KP_PERIOD: "MUSIK_MUTE",           # DEL/.-Taste Nummernblock
             pygame.K_KP_MULTIPLY: "MUSIK_LAUTER",       # *-Taste Nummernblock
