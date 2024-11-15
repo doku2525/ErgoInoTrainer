@@ -143,26 +143,33 @@ class ApplikationController:
 
     @staticmethod
     def key_mapper(key: int, modifier: int = 0) -> str:
-        key_bindings_ohne_mod = {
+        key_bindings_ohne_modifier = {
             pygame.K_LEFT: "PWM-",
+            pygame.K_KP4: "PWM-",                       # Keypadtasten
             pygame.K_RIGHT: "PWM+",
+            pygame.K_KP6: "PWM+",
             pygame.K_UP: "PWM++",
+            pygame.K_KP8: "PWM++",
             pygame.K_DOWN: "PWM--",
+            pygame.K_KP2: "PWM--",
             pygame.K_q: "QUIT",
             pygame.K_p: "PAUSE",
             pygame.K_SPACE: "PAUSE",
+            pygame.K_KP_ENTER: "PAUSE",                 # Entertaste auf Keypad
             pygame.K_m: "MUSIK_MUTE",
             pygame.K_KP_PERIOD: "MUSIK_MUTE",           # DEL/.-Taste Nummernblock
             pygame.K_KP_MULTIPLY: "MUSIK_LAUTER",       # *-Taste Nummernblock
-            pygame.K_KP_DIVIDE: "MUSIK_LAUTER",          # /-Taste Nummernblock
+            pygame.K_KP_DIVIDE: "MUSIK_LAUTER",         # /-Taste Nummernblock
             pygame.K_e: "PAUSE_NACH_INHALT"
         }
-        key_bindings_shift_mod = {                      # Mit gedrueckter SHIFT-Taste
+        key_bindings_mit_shift_modifier = {                      # Mit gedrueckter SHIFT-Taste
             pygame.K_e: "CHANGE_TRANINGSPROGRAMM_UNENDLICH"
         }
-        if modifier in [pygame.KMOD_SHIFT, pygame.KMOD_LSHIFT, pygame.KMOD_RSHIFT]:
-            return key_bindings_shift_mod.get(key, "")
-        return key_bindings_ohne_mod.get(key, "")
+        match modifier:                     #NumLock => KMOD_NUM = 4096
+            case pygame.KMOD_SHIFT | pygame.KMOD_LSHIFT | pygame.KMOD_RSHIFT:
+                return key_bindings_mit_shift_modifier.get(key, "")
+            case 0: return key_bindings_ohne_modifier.get(key, "")      # Ohne Modifier
+            case _: ""                                                  # Noch nicht implementierte Modifier
 
     def command_mapper(self, status: Status) -> Callable:
         def pause_mit_zeit():
@@ -203,7 +210,7 @@ class ApplikationController:
                 self.beende_programm()
                 sys.exit()
             if event.type == pygame.KEYDOWN:
-                # print(f"Taste: {event.key} {event.mod}")  # TODO Zum Ermitteln eines Taste-CODES die Zeile auskommentieren
+                print(f"Taste: {event.key} {event.mod}")  # TODO Zum Ermitteln eines Taste-CODES die Zeile auskommentieren
                 status.gedrueckte_taste = ApplikationController.key_mapper(event.key, event.mod)
                 if status.gedrueckte_taste:
                     # Fuehre den zur gedrueckten Taste passenden Befehl aus.
