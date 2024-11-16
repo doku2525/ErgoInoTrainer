@@ -1,20 +1,23 @@
 from __future__ import annotations
+from typing import Callable
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from threading import Thread
-from collections import deque
+from collections import deque, namedtuple
 import pexpect
 import time
 
 
+PulswerteDatenObjekt = namedtuple('PulswerteDatenObjekt',['zeitstempel', 'ble_objekt'])
+
 class BLEDevice(ABC):
 
     @abstractmethod
-    def lese_messwerte(self) -> str:
+    def lese_messwerte(self) -> PulswerteDatenObjekt:
         pass
 
     @abstractmethod
-    def sende_befehl(self,befehl: str) -> None:
+    def sende_befehl(self, befehl: str) -> None:
         pass
 
     @abstractmethod
@@ -30,7 +33,7 @@ class PulsmesserBLEDevice(BLEDevice):
     Fuer ein typisches Protokoll siehe auch https://gist.github.com/fphammerle/d758ecf1968c0708eca66b5e9e5347d1
     """
     def __init__(self, blt_addresse: str = "E4:B2:5F:32:5C:AF", hrCtlHandle: str = "0x000c",
-                 hrHandle: str = "0x000b", queue_maxlen: int = 1):
+                 hrHandle: str = "0x000b", queue_maxlen: int = 1, zeitstempel_funktion: Callable = time.time):
         self.bltAddr = blt_addresse
         self.hrCtlHandle = hrCtlHandle
         self.hrHandle = hrHandle
@@ -38,17 +41,16 @@ class PulsmesserBLEDevice(BLEDevice):
         self.herzfrequenz = 0                   # TODO Funktion in Pulsmesser-Klasse auslagern
         self.device_messwerte: dict = dict()    # TODO Funktion in Pulsmesser-Klasse auslagern.
         self.batterie_level = 0
+        self.zeitstempel_funktion = zeitstempel_funktion
         self.connected = False
         self.messdaten_queue = deque([], maxlen=queue_maxlen)
-        self.lese_bledevice_loop_flag = True
+        self.lese_device_loop_flag = True
         self.thread = None
-#        self.connect()
-#        self.starte_lese_bledevice_loop()
 
-    def lese_messwerte(self) -> str:
+    def lese_messwerte(self) -> PulswerteDatenObjekt:
         raise NotImplementedError
 
-    def sende_befehl(self,befehl: str) -> None:
+    def sende_befehl(self, befehl: str = "") -> None:
         raise NotImplementedError
 
     def connect(self) -> bool:
@@ -74,57 +76,28 @@ class PulsmesserBLEDevice(BLEDevice):
         self.gattool.sendline("quit")
         print("Beende BLE-Connection!")
 
-    def starte_lese_bledevice_loop(self) -> bool:
+    def starte_lese_ble_device_loop(self) -> bool:
         if (not self.connected):
             return False
         else:
+            # Sende Startkommando an das BLE-Devices. Device beginnt einen String pro Sekunde zu senden.
             self.gattool.sendline("char-write-req " + self.hrCtlHandle + " 0100")
-            self.thread = Thread(target=self.lese_bledevice)
+            self.thread = Thread(target=self.lese_ble_device)
             self.thread.start()
             return True
 
-    def letzteHF(self):
-        if not self.connected:
-            return 0
-        else:
-            return int(herzwert["herzfrequenz"])
-
-    @staticmethod
-    def interpretiere_herzfrequenz(self, raw_messwerte: list[int], aktuelle_zeit: float) -> dict:
-        """
-        data is a list of integers corresponding to readings from the BLE HR monitor
-        """
-        # TODO Resultwert nicht als Dictionary, sondern eigenen Datentypen zurueckgeben
-        byte0 = raw_messwerte[0]
-        result = {"zeit": aktuelle_zeit,
-                  "rr_interval": ((byte0 >> 4) & 1) == 1,
-                  "herzfrequenz": raw_messwerte[1]}
-        i = 2
-        if result["rr_interval"]:
-            result["rr"] = []
-            while i < len(raw_messwerte):
-                # Note: Need to divide the value by 1024 to get in seconds
-                result["rr"].append((raw_messwerte[i + 1] << 8) | raw_messwerte[i])
-                i += 2
-            # TODO Schreibe while-Schleife als list comprehension
-            #   [(raw_messwerte[index + 1] << 8) | raw_messwerte[index]) for index in range(2,len(raw_messwerte), 2)]
-        return result
-
-    def lese_bledevice(self):
+    def lese_ble_device(self) -> None:
         # Lese die Daten in einer Schleife vom Geraet
-        # Typischer Ruecggabewert ist wie folgt: "Notification handle = 0x0010 value: 10 4e ba 03 9f 03"
-        while self.lese_bledevice_loop_flag:
+        # Typischer Rueckgabewert ist wie folgt: "Notification handle = 0x0010 value: 10 4e ba 03 9f 03"
+        #       Es wird auch nur alle Sekunde eine Notification geschickt
+        while self.lese_device_loop_flag:
             hr_expect = "Notification handle = " + self.hrHandle + " value: ([0-9a-f ]+)"
-            self.gattool.expect(hr_expect)
+            self.gattool.expect(hr_expect)              # Hier wartet das Porgramm wohl auf die neuen Werte
             datahex = self.gattool.match.group(1).strip()
-            aktuelle_zeit = time.time()
-            raw_messwerte_als_liste = list(map(lambda x: int(x, 16), datahex.split(b' ')))
-            # Verarbeite Daten und setze das Ergebnis ans Ende des Queues mit den Messdaten
-            self.messdaten_queue.append(interpretiere_herzfrequenz(raw_messwerte_als_liste, aktuelle_zeit))
-
-    def updateHF(self):
-        if (len(self.hfdaten) > 0): self.device_messwerte = self.hfdaten.pop()
-        return self.device_messwerte
+            print(f"")
+            # Erzeuge PulswerteDatenObjekt aus den Messwerten und setze es an das Ende des Queues
+            self.messdaten_queue.append(PulswerteDatenObjekt(self.zeitstempel_funktion(),
+                                                             BLEHeartRateData.from_raw_data(datahex)))
 
 
 @dataclass(frozen=True)
