@@ -210,7 +210,7 @@ class ApplikationController:
                 self.beende_programm()
                 sys.exit()
             if event.type == pygame.KEYDOWN:
-                # print(f"Taste: {event.key} {event.mod}")  # TODO Zum Ermitteln eines Taste-CODES die Zeile auskommentieren
+                print(f"Taste: {event.key} {event.mod}")  # TODO Zum Ermitteln eines Taste-CODES die Zeile auskommentieren
                 status.gedrueckte_taste = ApplikationController.key_mapper(event.key, event.mod)
                 if status.gedrueckte_taste:
                     # Fuehre den zur gedrueckten Taste passenden Befehl aus.
