@@ -25,12 +25,12 @@ MEINE_AUDIO_OBJEKTE: list[AudioObjekt] = [
     AudioObjekt(filename='media/sounds/07 - 木綿のハンカチーフ.mp3',
                 trainingsplan=['Tabata'], trainingsinhalt=['Warmfahren'],
                 zeit_start=500, dauer=361000, prioritaet=(100, 50)),
-    AudioObjekt(filename='media/sounds/08 - Green Tea.mp3',
+    AudioObjekt(filename='media/sounds/松崎ナオ - 川べりの家.mp3',
                 trainingsplan=['Tabata'], trainingsinhalt=['Ausfahren'],
-                zeit_start=-8000, dauer=179000, prioritaet=(100, 50)),
+                zeit_start=-9100, dauer=175000, prioritaet=(100, 50)),
     AudioObjekt(filename='media/sounds/05 - Beautiful Sa.mp3',
                 trainingsplan=['Tabata'], trainingsinhalt=['Ausfahren'],
-                zeit_start=179000-7000, dauer=276000, prioritaet=(100, 50))
+                zeit_start=175000-9000, dauer=276000, prioritaet=(100, 50))
 ]
 
 

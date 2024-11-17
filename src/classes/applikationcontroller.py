@@ -165,7 +165,7 @@ class ApplikationController:
         key_bindings_mit_shift_modifier = {                      # Mit gedrueckter SHIFT-Taste
             pygame.K_e: "CHANGE_TRANINGSPROGRAMM_UNENDLICH"
         }
-        match modifier:                     #NumLock => KMOD_NUM = 4096
+        match modifier:                     # NumLock => KMOD_NUM = 4096
             case pygame.KMOD_SHIFT | pygame.KMOD_LSHIFT | pygame.KMOD_RSHIFT:
                 return key_bindings_mit_shift_modifier.get(key, "")
             case 0: return key_bindings_ohne_modifier.get(key, "")      # Ohne Modifier
