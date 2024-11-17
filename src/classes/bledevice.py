@@ -8,7 +8,8 @@ import pexpect
 import time
 
 
-PulswerteDatenObjekt = namedtuple('PulswerteDatenObjekt',['zeitstempel', 'ble_objekt'])
+PulswerteDatenObjekt = namedtuple('PulswerteDatenObjekt', ['zeitstempel', 'ble_objekt'])
+
 
 class BLEDevice(ABC):
 
@@ -77,7 +78,7 @@ class PulsmesserBLEDevice(BLEDevice):
         print("Beende BLE-Connection!")
 
     def starte_lese_ble_device_loop(self) -> bool:
-        if (not self.connected):
+        if not self.connected:
             return False
         else:
             # Sende Startkommando an das BLE-Devices. Device beginnt einen String pro Sekunde zu senden.
@@ -112,7 +113,7 @@ class BLEHeartRateData:
             return (y << 8) | x
 
         als_liste_mit_int = list(map(lambda x: int(x, 16), raw_hex_datastring.split(b' ')))
-        return BLEHeartRateData(bit_flag= als_liste_mit_int[0],
+        return BLEHeartRateData(bit_flag=als_liste_mit_int[0],
                                 herzfrequenz=als_liste_mit_int[1],
                                 rr_intervall=[bytes_zu_int(als_liste_mit_int[index], als_liste_mit_int[index + 1])
                                               for index
