@@ -70,7 +70,7 @@ def main():
     # Initialisiere die einzelnen Views und erzeuge Liste mir den noetigen
     pygame_view = ApplikationView()
     flask_view = FlaskView()
-    meine_views = [pygame_view]
+    meine_views = [pygame_view, flask_view]
 
     # Starte den Flask-Server im Hintergrund
     flask_view.start_server() if flask_view in meine_views else None

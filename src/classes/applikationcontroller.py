@@ -217,7 +217,6 @@ class ApplikationController:
                     funktion, argumente = self.command_mapper(status)
                     if isinstance(result := funktion(**argumente), self.modell.ergo.__class__):
                         status.modell.ergo = result
-
         return status
 
     def update_ergometer(self, status: Status) -> None:
@@ -268,8 +267,13 @@ class ApplikationController:
             v.daten = daten_modell
             v.draw_daten()
             # TODO Folgende Textzeilen funktionieren nicht
-            # if hasattr(v, 'browser_key'):
-            #     print(f"Browserkey: {v.browser_key}")
+            if hasattr(v, 'browser_key'):
+                if v.browser_key is not None:
+                    status.gedrueckte_taste = v.browser_key
+                    v.browser_key = None
+                    funktion, argumente = self.command_mapper(status)
+                    if isinstance(result := funktion(**argumente), self.modell.ergo.__class__):
+                        status.modell.ergo = result
         pygame.event.pump()
 
     def programm_loop(self, fps: int = 50):

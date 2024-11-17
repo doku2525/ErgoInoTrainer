@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, Request, request, redirect, Response
 from threading import Thread
 import logging as lg
 
@@ -16,28 +16,48 @@ class FlaskView:
 
         self.app.logger.disabled = not logging
         self.daten = ViewDatenModell()
-        self.browser_key = 'Inikey'
+        self.web_kommando = None
 
         # Route für die HTML-Datei
         @self.app.route('/')
+        @self.app.route('/index')
         def index():
             return render_template('index.html')
 
-        # Route, um die aktuellen Daten abzurufen
-        @self.app.route('/ergometer')
+        @self.app.route('/get_data')
         def get_data():
             return jsonify(self.daten._asdict())
 
-        @self.app.route('/input', methods=['POST'])
-        def process_input():
-            input_data = request.json  # Erwartet eine JSON-Nachricht
-            #print("Request angekommen")
-            if 'key' in input_data:
-                key = input_data['key']
-                self.browser_key = key  # Speichere den letzten Schlüssel
-                #print(jsonify({"status": "success", "key": key}))
-                return jsonify({"status": "success", "key": key})
-            return jsonify({"status": "error", "message": "No key provided"}), 400
+        # Routen mit den Befehlen
+        @self.app.route('/pause')
+        def pause() -> Response:
+            self.browser_key = 'PAUSE'
+            return redirect(request.referrer)
+
+        @self.app.route('/musik_mute')
+        def musik_mute() -> Response:
+            self.browser_key = 'MUSIK_MUTE'
+            return redirect(request.referrer)
+
+        @self.app.route('/pwm_plusplus')
+        def pwm_plusplus() -> Response:
+            self.browser_key = 'PWM++'
+            return redirect(request.referrer)
+
+        @self.app.route('/pwm_plus')
+        def pwm_plus() -> Response:
+            self.browser_key = 'PWM+'
+            return redirect(request.referrer)
+
+        @self.app.route('/pwm_minus')
+        def pwm_minus() -> Response:
+            self.browser_key = 'PWM-'
+            return redirect(request.referrer)
+
+        @self.app.route('/pwm_minusminus')
+        def pwm_minusminus() -> Response:
+            self.browser_key = 'PWM--'
+            return redirect(request.referrer)
 
     def update(self, daten_modell):
         """Aktualisiert die anzuzeigenden Daten."""
@@ -48,7 +68,7 @@ class FlaskView:
 
     def run(self):
         """Startet den Flask-Server in einem separaten Thread."""
-        self.app.run(debug=False, use_reloader=False)
+        self.app.run(debug=False, use_reloader=False, host='0.0.0.0')
 
     def start_server(self):
         """Initialisiert und startet den Server im Hintergrund."""

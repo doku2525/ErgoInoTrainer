@@ -1,43 +1,81 @@
 <!-- static/index.html -->
 <!DOCTYPE html>
 <html lang="de">
-<head>
-    <meta charset="UTF-8">
-    <title>Echtzeit-Updates</title>
-    <script>
-        function fetchData() {
-            fetch('/ergometer')
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('data').innerText = JSON.stringify(data, null, 2);
-                })
-                .catch(error => console.error('Fehler:', error));
-        }
-        // Daten alle 0.5 Sekunden abrufen
-        setInterval(fetchData, 500);
-
-        document.addEventListener('keydown', function(event) {
-            let key = '';
-            if (event.key === 'p' || event.key === 'q') {
-                key = event.key;
-                sendInput(key);
+    <head>
+        <meta charset="UTF-8">
+        <title>Echtzeit-Updates</title>
+        <script>
+            function fetchData() {
+                fetch('/get_data')
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('zeit_gesamt').textContent = data.zeit_gesamt;
+                        document.getElementById('bremse').textContent = data.pwm_wert;
+                    })
+                    .catch(error => console.error('Fehler:', error));
             }
-        });
 
-        function sendInput(key) {
-            fetch('/input', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ key: key })
-            });
+            // Daten alle 0.5 Sekunden abrufen
+            setInterval(fetchData, 250);
+        </script>
+        <style>
+        .bildschirm{
+            display: inline-block;
+            height: 100%;
+            width: 100%;
+            padding: 0.5vw 1vw;
         }
-
-    </script>
-</head>
-<body>
-    <h1>Echtzeit-Update der Ergometer-Daten</h1>
-    <pre id="data">Daten werden geladen...</pre>
-</body>
+        .bewertungsfeld{
+        }
+        .buttonfeld{
+            padding: 5px;
+        }
+        .knopf{
+            width: 250px;
+            height: 120px;
+            text-align: center;
+            background-color: yellow;
+            font-size: 52px;
+        }
+        a {
+            text-decoration: none;
+            color: black;
+        }
+        .zurueck{
+            text-align: right;
+            background-color: green;
+            width: 20%;
+            padding:0.25em;
+            font-size: 24px;
+        }
+        .zeit_gesamt{
+            width: 250px;
+            height: 80px;
+            text-align: center;
+            background-color: white;
+            font-size: 68px;
+        }
+        </style>
+    </head>
+    <body>
+        <h1>Echtzeit-Update der Ergometer-Daten</h1>
+        <table>
+            <tr>
+                <td class="zeit_gesamt" id="zeit_gesamt"></td>
+                <td class="zeit_gesamt" id="bremse"></td>
+            </tr>
+        </table>
+        <table>
+            <tr>
+                <td class="buttonfeld"><a href="pause" onclick="fetchData()"><div class="knopf" style="background-color:darkred"> PAUSE </div></a></td>
+                <td class="buttonfeld"><a href="musik_mute" onclick="fetchData()"><div class="knopf" style="background-color:orangered"> MUTE </div></a></td>
+                <td class="buttonfeld"><a href="pwm_plusplus" onclick="fetchData()"><div class="knopf" style="background-color:orange"> PWM ++ </div></a></td>
+            </tr>
+            <tr>
+                <td class="buttonfeld"><a href="pwm_minus" onclick="fetchData()"><div class="knopf" style="background-color:greenyellow"> PWM - </div></a></td>
+                <td class="buttonfeld"><a href="pwm_plus" onclick="fetchData()"><div class="knopf" style="background-color:lime"> PWM + </div></a></td>
+                <td class="buttonfeld"><a href="pwm_minusminus" onclick="fetchData()"><div class="knopf" style="background-color:green"> PWM -- </div></a></td>
+            </tr>
+        </table>
+    </body>
 </html>
