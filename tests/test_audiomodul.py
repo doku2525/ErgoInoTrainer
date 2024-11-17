@@ -76,6 +76,7 @@ class test_Audiomodul(TestCase):
                              audiomodul.build_playlist(trainingsplan=plan, audio_objekte=audio)[index][0])
 
         plan = erzeuge_trainingsprogramm_Tabata(pwm=(1, 3), cad=(100, 100))
+        print(f"\nAudiomodule: {audiomodul.MEINE_AUDIO_OBJEKTE}")
         audio = (self.audio[:1] +
                  [replace(audiomodul.MEINE_AUDIO_OBJEKTE[0], trainingsinhalt=['Ausfahren'])])
         self.assertEqual(9, len(audiomodul.build_playlist(trainingsplan=plan, audio_objekte=audio)))

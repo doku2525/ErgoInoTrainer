@@ -1,5 +1,7 @@
+from __future__ import annotations
 from dataclasses import dataclass, field
-
+import json
+import os
 
 @dataclass(frozen=True)
 class AudioObjekt:
@@ -14,3 +16,20 @@ class AudioObjekt:
 # TODO Der Wert fuer dauer sollte evtl. die laenge der Audiodatei beinhalten? Zur Zeit wird die Audiodatei
 #   solange wiederholt, bis dauer erreicht wurde.
 # TODO Oder noch ein Attribut datei_laenge_in_ms hinzufuegen.
+
+
+# Funktion zum Laden einer Liste von AudioObjekten aus einer JSON-Datei
+def load_audio_objekte(json_file: str) -> list[AudioObjekt]:
+    if os.path.exists(json_file):
+        with open(json_file, 'r') as f:
+            data = json.load(f)
+            return [AudioObjekt(**obj) for obj in data]
+    else:
+        # Wenn die Datei nicht existiert, gib leere Liste zurück oder handle den Fehler anders
+        return []
+
+
+def save_audio_objekte(json_file: str, liste_mit_objekten: AudioObjekt):
+    with open(json_file, 'w') as file:
+        data = [obj.__dict__ for obj in liste_mit_objekten]
+        json.dump(data, file, indent=4)

@@ -1,0 +1,82 @@
+[
+    {
+        "filename": "media/sounds/tabata.wav",
+        "trainingsplan": [
+            "Tabata"
+        ],
+        "trainingsinhalt": [
+            "Intervall"
+        ],
+        "zeit_start": -10000,
+        "dauer": 30000,
+        "prioritaet": [
+            100,
+            50
+        ],
+        "loops": 0
+    },
+    {
+        "filename": "media/sounds/01 Hello (Club Edit).mp3",
+        "trainingsplan": [
+            "Tabata"
+        ],
+        "trainingsinhalt": [
+            "Warmfahren"
+        ],
+        "zeit_start": 361700,
+        "dauer": 333000,
+        "prioritaet": [
+            100,
+            50
+        ],
+        "loops": 0
+    },
+    {
+        "filename": "media/sounds/07 - \u6728\u7dbf\u306e\u30cf\u30f3\u30ab\u30c1\u30fc\u30d5.mp3",
+        "trainingsplan": [
+            "Tabata"
+        ],
+        "trainingsinhalt": [
+            "Warmfahren"
+        ],
+        "zeit_start": 500,
+        "dauer": 361000,
+        "prioritaet": [
+            100,
+            50
+        ],
+        "loops": 0
+    },
+    {
+        "filename": "media/sounds/\u677e\u5d0e\u30ca\u30aa - \u5ddd\u3079\u308a\u306e\u5bb6.mp3",
+        "trainingsplan": [
+            "Tabata"
+        ],
+        "trainingsinhalt": [
+            "Ausfahren"
+        ],
+        "zeit_start": -9100,
+        "dauer": 175000,
+        "prioritaet": [
+            100,
+            50
+        ],
+        "loops": 0
+    },
+    {
+        "filename": "media/sounds/05 - Beautiful Sa.mp3",
+        "trainingsplan": [
+            "Tabata"
+        ],
+        "trainingsinhalt": [
+            "Ausfahren"
+        ],
+        "zeit_start": 166000,
+        "dauer": 276000,
+        "prioritaet": [
+            100,
+            50
+        ],
+        "loops": 0
+    }
+]

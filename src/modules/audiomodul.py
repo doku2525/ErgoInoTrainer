@@ -3,11 +3,12 @@ from collections import namedtuple
 import pygame.mixer
 from pygame.mixer import music
 
-from src.classes.audioobjekt import AudioObjekt
+from src.classes.audioobjekt import AudioObjekt, load_audio_objekte
 from src.classes.trainingsprogramm import Trainingsprogramm
 from src.classes.trainingsinhalt import Trainingsinhalt
 
 
+# Datentyp fuer meine Playlist (playlist: list[PlaylistAudioObjekt]), mit startzeit und endzeit innerhalb der Playlist
 PlaylistAudioObjekt = namedtuple('PlaylistAudioObjekt', ['startzeit', 'endzeit', 'objekt'])
 
 pygame.mixer.init()
@@ -16,22 +17,8 @@ FADINGOUT_DAUER = 500
 AUDIO_VOLUME: float = float(music.get_volume())
 AUDIO_VOLUME_FADINGOUT: bool = False
 AUDIOOBJEKT_AKTIVE: list[PlaylistAudioObjekt] = list()
-MEINE_AUDIO_OBJEKTE: list[AudioObjekt] = [
-    AudioObjekt(filename='media/sounds/tabata.wav', trainingsplan=['Tabata'], trainingsinhalt=['Intervall'],
-                zeit_start=-10000, dauer=30000, prioritaet=(100, 50)),
-    AudioObjekt(filename='media/sounds/01 Hello (Club Edit).mp3',
-                trainingsplan=['Tabata'], trainingsinhalt=['Warmfahren'],
-                zeit_start=361000+700, dauer=333000, prioritaet=(100, 50)),
-    AudioObjekt(filename='media/sounds/07 - 木綿のハンカチーフ.mp3',
-                trainingsplan=['Tabata'], trainingsinhalt=['Warmfahren'],
-                zeit_start=500, dauer=361000, prioritaet=(100, 50)),
-    AudioObjekt(filename='media/sounds/松崎ナオ - 川べりの家.mp3',
-                trainingsplan=['Tabata'], trainingsinhalt=['Ausfahren'],
-                zeit_start=-9100, dauer=175000, prioritaet=(100, 50)),
-    AudioObjekt(filename='media/sounds/05 - Beautiful Sa.mp3',
-                trainingsplan=['Tabata'], trainingsinhalt=['Ausfahren'],
-                zeit_start=175000-9000, dauer=276000, prioritaet=(100, 50))
-]
+MEINE_AUDIO_OBJEKTE_DATEI: str = 'daten/config/AUDIO_OJEKTE.JSON'
+MEINE_AUDIO_OBJEKTE: list[AudioObjekt] = load_audio_objekte(MEINE_AUDIO_OBJEKTE_DATEI)
 
 
 def lautstaerke(neuer_wert: float | None = None) -> float:
