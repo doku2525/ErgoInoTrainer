@@ -20,10 +20,13 @@ class ApplikationView:
         self._screen.fill(self.farbe_weiss)
         self.daten = ViewDatenModell()
         self._text_farbe = self.farbe_gruen
+        self.debug_werte = {}
 
     def draw_daten(self) -> None:
         self._screen.fill(self.farbe_weiss)
         for elem in self.build_elements():
+            # TODO Achtung DEBUGG_MODE Hier spaeter wieder draw_element_with_rect herausnehmen
+            # self.draw_element_with_rect(elem)
             self.draw_element(elem)
         pygame.display.flip()
 
@@ -36,12 +39,46 @@ class ApplikationView:
             elem = self._font.render("{0}".format(text), True, self._text_farbe)
         self._screen.blit(elem, position)
 
+        # TODO Loesche spaeter den Teil hier
+        # rect = elem.get_rect()
+        # rect.topleft = position
+        # self.debug_werte = self.debug_werte | {
+        #     (rect.x, rect.y): self.debug_werte.get((rect.x, rect.y), {}) | {
+        #         (rect.width, rect.height): (self.debug_werte.get((rect.width, rect.height), text))}
+        # }
+
+    def draw_element_with_rect(self, element) -> None:
+        (size, text, farbe, position) = element
+        # ... (Dein vorhandener Code zum Rendern des Texts)
+        self._font = pygame.font.SysFont(None, size)
+        if farbe:
+            elem = self._font.render("{0}".format(text), True, (230, 230, 230))
+        else:
+            elem = self._font.render("{0}".format(text), True, (230, 230, 230))
+        self._screen.blit(elem, position)
+
+        # Rechteck zeichnen
+        rect = elem.get_rect()
+        rect.topleft = position
+        pygame.draw.rect(self._screen, (0, 0, 0), rect, 1)  # Schwarzes Rechteck, 1 Pixel Strichstärke
+
+        # Text für Position und Größe
+        font = pygame.font.SysFont(None, 20)
+        pos_text = font.render(f"({rect.x}, {rect.y})", True, (0, 0, 0))
+        size_text = font.render(f"{rect.width}x{rect.height}", True, (0, 0, 0))
+        self._screen.blit(pos_text, (rect.x + 2, rect.y + 2))  # Position unten links
+        self._screen.blit(size_text, (rect.right - 50, rect.bottom - 22))  # Größe unten rechts
+        self.debug_werte = self.debug_werte | {
+            (rect.x, rect.y): self.debug_werte.get((rect.x, rect.y), {}) | {
+                (rect.width, rect.height): (self.debug_werte.get((rect.width, rect.height), text))}
+            }
+
     def build_elements(self) -> list[list[int, str, (int, int, int), (int, int)]]:
         screen_hoehe = self.hoehe
         screen_breite = self.breite
         tmp = [(80, "{0}".format(self.daten.zeit_gesamt), False, (10, 5)),
            (120, self.daten.anzahl_fertige_sets, False, (10, 96 - 30)),
-           (318, self.daten.zeit_timer, self.daten.intervall_farbe, (120 + 2, 96 - 50)),
+           (318, "{: >3}".format(self.daten.zeit_timer), self.daten.intervall_farbe, (120 + 2, 96 - 50)),
            (170, "{: >3}".format(self.daten.herz_frequenz), False, (290, 315)),
            (36, self.daten.herz_durchschnitt, False, (350, screen_hoehe - 29)),
            (36, self.daten.herz_gesamt, False, (405, screen_hoehe - 29)),

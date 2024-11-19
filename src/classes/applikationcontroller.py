@@ -3,6 +3,7 @@ from typing import Callable
 import sys
 import pygame
 import datetime
+import jsonpickle
 
 from src.classes.applikationmodel import ApplikationModell
 from src.classes.applikationview import ApplikationView
@@ -202,6 +203,10 @@ class ApplikationController:
         return command_map.get(status.gedrueckte_taste, lambda: None)
 
     def beende_programm(self) -> None:
+        # TODO Zum Debuggen. Spaeter entfernen.
+        # with open('daten/log/viewelemente.log', 'w') as datei:
+        #     for elem in self.views[0].debug_werte.items():
+        #         datei.write(jsonpickle.encode(elem) + "\n")
         self.modell.board.sendeUndLeseWerte(0)  # Bremse auf 0 um das PWM-Summen an der Bremse zu stoppen
 
     def process_tastatureingabe(self, status: Status = None) -> Status:

@@ -59,6 +59,16 @@ class FlaskView:
             self.browser_key = 'PWM--'
             return redirect(request.referrer)
 
+        @self.app.route('/pause_nach_inhalt')
+        def pause_nach_inhalt() -> Response:
+            self.browser_key = 'PAUSE_NACH_INHALT'
+            return redirect(request.referrer)
+
+        @self.app.route('/change_trainigsprogramm_unendlich')
+        def change_trainigsprogramm_unendlich() -> Response:
+            self.browser_key = 'CHANGE_TRANINGSPROGRAMM_UNENDLICH'
+            return redirect(request.referrer)
+
     def update(self, daten_modell):
         """Aktualisiert die anzuzeigenden Daten."""
         self.daten = daten_modell

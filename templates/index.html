@@ -3,14 +3,25 @@
 <html lang="de">
     <head>
         <meta charset="UTF-8">
-        <title>Echtzeit-Updates</title>
+        <title>Ergometer Echtzeit-Updates</title>
         <script>
+            function rgbToCss(r, g, b) {
+                return `rgba(${r}, ${g}, ${b})`;
+            }
             function fetchData() {
                 fetch('/get_data')
                     .then(response => response.json())
                     .then(data => {
+                        document.getElementById('trainings_name').textContent = data.trainings_name;
+                        document.getElementById('trainings_inhalt').textContent = data.trainings_inhalt;
+                        document.getElementById('trainings_gesamtzeit').textContent = data.trainings_gesamtzeit;
                         document.getElementById('zeit_gesamt').textContent = data.zeit_gesamt;
-                        document.getElementById('bremse').textContent = data.pwm_wert;
+                        document.getElementById('trainings_gesamtzeit').textContent = data.trainings_gesamtzeit;
+                        document.getElementById('zeit_timer').textContent = data.zeit_timer_string;
+                        document.getElementById('zeit_timer').style.color = rgbToCss(data.intervall_farbe[0],
+                                                                                     data.intervall_farbe[1],
+                                                                                     data.intervall_farbe[2]);
+                        document.getElementById('bremse').textContent = data.pwm_wert + " - " + data.cad_frequenz;
                     })
                     .catch(error => console.error('Fehler:', error));
             }
@@ -48,20 +59,42 @@
             padding:0.25em;
             font-size: 24px;
         }
+        .daten_gesamt{
+            width: 250px;
+            height: 80px;
+            text-align: center;
+            background-color: white;
+            font-size: 38px;
+        }
         .zeit_gesamt{
             width: 250px;
             height: 80px;
             text-align: center;
             background-color: white;
-            font-size: 68px;
+            font-size: 58px;
         }
         </style>
     </head>
     <body>
-        <h1>Echtzeit-Update der Ergometer-Daten</h1>
         <table>
             <tr>
-                <td class="zeit_gesamt" id="zeit_gesamt"></td>
+                <td class="daten_gesamt">
+                    <a href="change_trainigsprogramm_unendlich" onclick="fetchData()" id="trainings_name"></a>
+                </td>
+                <td class="daten_gesamt">
+                    <a href="change_trainigsprogramm_unendlich" onclick="fetchData()" id="trainings_inhalt"></a>
+                </td>
+                <td class="daten_gesamt">
+                    <a href="change_trainigsprogramm_unendlich" onclick="fetchData()" id="trainings_gesamtzeit"></a>
+                </td>
+            </tr>
+            <tr>
+                <td class="zeit_gesamt">
+                    <a href="change_trainigsprogramm_unendlich" onclick="fetchData()" id="zeit_gesamt"></a>
+                </td>
+                <td class="zeit_gesamt">
+                    <a href="pause_nach_inhalt" onclick="fetchData()" id="zeit_timer"></a>
+                </td>
                 <td class="zeit_gesamt" id="bremse"></td>
             </tr>
         </table>
