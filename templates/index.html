@@ -8,6 +8,22 @@
             function rgbToCss(r, g, b) {
                 return `rgba(${r}, ${g}, ${b})`;
             }
+
+            let isCountingDown = false;
+            let countdownValue = -15;
+            function startCountdown() {
+                isCountingDown = true;
+                countdownElement = document.getElementById("pause");
+                const intervalId = setInterval(() => {
+                    countdownValue++;
+                    countdownElement.textContent = countdownValue;
+                    if (countdownValue === 0) {
+                        clearInterval(intervalId);
+                        window.location.href = "pause";
+                    }
+                }, 1000); // Alle 1 Sekunde aktualisieren
+            }
+
             function fetchData() {
                 fetch('/get_data')
                     .then(response => response.json())
@@ -16,6 +32,17 @@
                         document.getElementById('trainings_inhalt').textContent = data.trainings_inhalt;
                         document.getElementById('trainings_gesamtzeit').textContent = data.trainings_gesamtzeit;
                         document.getElementById('zeit_gesamt').textContent = data.zeit_gesamt;
+                        if (data.zeit_gesamt != '0:00:00') {
+                            if (!isCountingDown) {
+                                document.getElementById("pause").textContent = " PAUSE ";
+                                document.getElementById("pause_link").href = "pause";
+                                document.getElementById("pause_link").onclick = null;
+                            }
+                        } else {
+                            if (!isCountingDown) {
+                                document.getElementById("pause").textContent = " START ";
+                            }
+                        }
                         document.getElementById('trainings_gesamtzeit').textContent = data.trainings_gesamtzeit;
                         document.getElementById('zeit_timer').textContent = data.zeit_timer_string;
                         document.getElementById('zeit_timer').style.color = rgbToCss(data.intervall_farbe[0],
@@ -27,7 +54,7 @@
             }
 
             // Daten alle 0.5 Sekunden abrufen
-            setInterval(fetchData, 500);
+            setInterval(fetchData, 250);
         </script>
         <style>
         .bildschirm{
@@ -100,7 +127,7 @@
         </table>
         <table>
             <tr>
-                <td class="buttonfeld"><a href="pause" onclick="fetchData()"><div class="knopf" style="background-color:darkred"> PAUSE </div></a></td>
+                <td class="buttonfeld"><a id="pause_link" onclick=startCountdown()><div class="knopf" style="background-color:darkred" id="pause"> PAUSE </div></a></td>
                 <td class="buttonfeld"><a href="musik_mute" onclick="fetchData()"><div class="knopf" style="background-color:orangered"> MUTE </div></a></td>
                 <td class="buttonfeld"><a href="pwm_plusplus" onclick="fetchData()"><div class="knopf" style="background-color:orange"> PWM ++ </div></a></td>
             </tr>
