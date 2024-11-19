@@ -11,10 +11,10 @@ from src.classes import trainingsprogramm as tp
 meine_trainings_programme = [
     ("G1 locker", "erzeuge_trainingsprogramm_G1(dauer_in_minuten=95, pwm=34, cad=100)",
         tp.erzeuge_trainingsprogramm_G1(dauer_in_minuten=95, pwm=34, cad=100)),
-    ("G1 schwer", "erzeuge_trainingsprogramm_G1(dauer_in_minuten=90, pwm=40, cad=100)",
-        tp.erzeuge_trainingsprogramm_G1(dauer_in_minuten=90, pwm=40, cad=100)),
+    ("G1 schwer", "erzeuge_trainingsprogramm_G1(dauer_in_minuten=90, pwm=40, cad=90)",
+        tp.erzeuge_trainingsprogramm_G1(dauer_in_minuten=90, pwm=40, cad=90)),
     ("G1 mit 15sek Sprints",
-     "erzeuge_trainingsprogramm_G1_mit_sprints(pwm=(34,90), cad=(100,100), warmfahrzeit=10, dauer_in_minuten=75))",
+     "erzeuge_trainingsprogramm_G1_mit_sprints(pwm=(34,64), cad=(100,100), warmfahrzeit=10, dauer_in_minuten=75))",
      tp.erzeuge_trainingsprogramm_G1_mit_sprints(pwm=(34, 64), cad=(100, 100), warmfahrzeit=10, dauer_in_minuten=75)),
     ("G2 aktuell", "erzeuge_trainingsprogramm_G2Intervall((37, 47), (100, 100))",
         tp.erzeuge_trainingsprogramm_G2Intervall((37, 47), (100, 100))),
