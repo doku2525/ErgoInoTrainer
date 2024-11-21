@@ -28,7 +28,7 @@ class BLEDevice(ABC):
     def disconnect(self) -> None:
         pass
 
-
+# TODO char-write-req 0x000e 0100
 class PulsmesserBLEDevice(BLEDevice):
     """
     Fuer ein typisches Protokoll siehe auch https://gist.github.com/fphammerle/d758ecf1968c0708eca66b5e9e5347d1
