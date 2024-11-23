@@ -45,13 +45,13 @@ class test_PulsmesserBLEDevice(TestCase):
         self.assertTrue(device.starte_lese_ble_device_loop())
         time.sleep(1)
         # Überprüfe, ob der Thread läuft
-        self.assertTrue(device.thread.is_alive())
+        self.assertTrue(device.lese_messwerte_thread.is_alive())
         # Simuliere das Beenden des Threads
         device.lese_device_loop_flag = False
         mock_sleep.assert_called_once()  # Sicherstellen, dass sleep aufgerufen wurde
         # Warte, bis der Thread beendet ist
-        device.thread.join()
-        self.assertFalse(device.thread.is_alive())
+        device.lese_messwerte_thread.join()
+        self.assertFalse(device.lese_messwerte_thread.is_alive())
         self.assertEqual(1, len(device.messdaten_queue))
 
         mein_ble_objekt = device.messdaten_queue.pop()

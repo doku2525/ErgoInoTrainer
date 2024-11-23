@@ -46,10 +46,22 @@ class PulsmesserBLEDevice(BLEDevice):
         self.connected = False
         self.messdaten_queue = deque([], maxlen=queue_maxlen)
         self.lese_device_loop_flag = True
-        self.thread = None
+        self.lese_messwerte_thread = None
+
+    def start(self):
+        while not self.connected:
+            self.connected = self.connect()
+            if not self.connected:
+                print("Verbindung fehlgeschlagen. Versuche es in 5 Sekunden erneut.")
+                time.sleep(5)
+
+        # Nach erfolgreicher Verbindung Batterielevel abfragen und den Lese-Thread starten
+        self.lese_batterie_level()
+        self.lese_messwerte_thread = Thread(target=self.lese_messwerte_loop)
+        self.lese_messwerte_thread.start()
 
     def lese_messwerte(self) -> PulswerteDatenObjekt:
-        raise NotImplementedError
+        return self.messdaten_queue.pop()
 
     def sende_befehl(self, befehl: str = "") -> None:
         raise NotImplementedError
@@ -83,8 +95,8 @@ class PulsmesserBLEDevice(BLEDevice):
         else:
             # Sende Startkommando an das BLE-Devices. Device beginnt einen String pro Sekunde zu senden.
             self.gattool.sendline("char-write-req " + self.hrCtlHandle + " 0100")
-            self.thread = Thread(target=self.lese_ble_device)
-            self.thread.start()
+            self.lese_messwerte_thread = Thread(target=self.lese_ble_device)
+            self.lese_messwerte_thread.start()
             return True
 
     def lese_ble_device(self) -> None:

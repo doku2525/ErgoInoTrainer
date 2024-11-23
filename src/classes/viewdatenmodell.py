@@ -70,6 +70,6 @@ def erzeuge_log_string(mein_tuple: ViewDatenModell, join_string: str = "\t") -> 
         "{0}".format("herz_freq"),
         "{0}".format("batterie_level"),
         "{0}".format(mein_tuple.device_werte),
-        "{0}".format("herzwert")
+        "{0}".format("herzwert")        #{'zeit': 1722690179.975749, 'herzfrequenz': 122, 'rr': [498, 502], 'rr_interval': True}
         ]
     return join_string.join(result)

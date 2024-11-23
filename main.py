@@ -7,6 +7,7 @@ from src.classes.applikationview import ApplikationView
 from src.classes.flaskview import FlaskView
 from src.classes.trainingsprogramm import Trainingsprogramm
 from src.classes import trainingsprogramm as tp
+from src.classes.bledevice import PulsmesserBLEDevice
 
 meine_trainings_programme = [
     ("G1 locker", "erzeuge_trainingsprogramm_G1(dauer_in_minuten=95, pwm=34, cad=100)",
@@ -61,6 +62,8 @@ def main():
     log_file = log_files[-1]
 
     mein_modell = ApplikationModell()   # Als Standard wird ArduinoBoard in ApplikationModell initialisiert
+    mein_modell.puls_device = PulsmesserBLEDevice()
+
     mein_modell.trainingsprogramm, eingabe = waehle_trainingsprogramm_tkinter(meine_programme=meine_trainings_programme)
     if not meine_trainings_programme[eingabe][0][:4] == 'Test' and log_file is None:
         log_file = log_file_warnung_tkinter(log_files=log_files)
@@ -74,6 +77,7 @@ def main():
 
     # Starte den Flask-Server im Hintergrund
     flask_view.start_server() if flask_view in meine_views else None
+    # Decathlon blt_addresse="FA:2B:6E:F2:0B:A7", hrCtlHandle=, hrHandle=
 
     controller = ApplikationController(model=mein_modell, views=meine_views, log_file=log_file)
     controller.programm_loop(fps=100)

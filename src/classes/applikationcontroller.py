@@ -10,6 +10,7 @@ from src.classes.applikationview import ApplikationView
 from src.classes.datenprozessor import DatenProcessor
 from src.classes.stoppuhr import FlexibleZeit
 from src.classes.viewdatenmodell import ViewDatenModell
+from src.classes.bledevice import PulswerteDatenObjekt, BLEHeartRateData
 import src.classes.viewdatenmodell as viewdatenmodell
 from src.modules import audiomodul
 
@@ -50,6 +51,10 @@ def update_daten_modell(daten_modell: ViewDatenModell = ViewDatenModell(), statu
         'power_durchschnitt': status.modell.zonen.calcPowerDurchschnitt(),
         'power_watt': status.modell.ergo.calc_power_watt(),
         'werte_und_power': status.modell.zonen.mergeWerteAndPower(),
+        'herz_frequenz': status.modell.pulsmesser.herzfrequenz,
+        'herz_gesamt': status.modell.pulsmesser.herzschlaege,
+        'herz_durchschnitt': status.modell.pulsmesser.calc_puls_durchschnitt(status.modell.akuelle_zeit().als_ms()),
+        'herz_batterielevel': status.modell.puls_device.batterie_level,
         'device_werte': str(status.modell.board.device_daten.__dict__),
         'trainings_name': status.modell.trainingsprogramm.name,
         'trainings_inhalt': status.modell.trainingsprogramm.fuehre_aus(status.gestoppte_zeit.als_ms()).name,
@@ -246,16 +251,29 @@ class ApplikationController:
         elif args:
             audiomodul.AUDIO_VOLUME_FADINGOUT = False
 
+    def update_pulswerte(self, status: Status) -> None:
+        if status.modell.puls_device.connected:
+            status.modell.pulsmesser = status.modell.pulsmesser.verarbeite_device_werte(
+                status.modell.puls_device.lese_messwerte())
+        else:
+            if status.es_ist_zeit_fuer_update():
+                status.modell.pulsmesser = status.modell.pulsmesser.verarbeite_device_werte(
+                    PulswerteDatenObjekt(zeitstempel=0, ble_objekt=BLEHeartRateData(16, 0, [])).ble_objekt)
+
     def update_daten(self, status: Status, daten_modell: ViewDatenModell) -> tuple[Status, ViewDatenModell]:
         # TODO Unterteile in Updates, die waherend der Pause nicht durchgefuehrt werden muessen und staendigen
+        # TODO Herzwerte durch Dummy bzw. echte BLEDvice testen.
         status.update_werte_nach_trainingsplan()
         status.modell.trainingsprogramm.verarbeite_messwerte(status.gestoppte_zeit.als_ms(),
                                                              status.modell.ergo.lese_distance())
         self.update_musik(status)
         self.update_ergometer(status)
+        self.update_pulswerte(status)
         if not status.modell.uhr.macht_pause():
+            # TODO Herz = Gesamtzahl der Schlaege,[ herz += len(ble_heartrate_data.rr_intervall)];
             status.modell.zonen.updateZone(pwm=status.berechne_pwm_wert() / 100, zeit=status.gestoppte_zeit,
-                                           dist=status.modell.ergo.lese_distance(), herz=0)
+                                           dist=status.modell.ergo.lese_distance(),
+                                           herz=status.modell.pulsmesser.herzschlaege)
         neue_daten = update_daten_modell(daten_modell=daten_modell, status=status)
         return status, neue_daten
 
