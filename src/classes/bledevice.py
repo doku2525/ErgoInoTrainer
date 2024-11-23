@@ -28,6 +28,7 @@ class BLEDevice(ABC):
     def disconnect(self) -> None:
         pass
 
+
 # TODO char-write-req 0x000e 0100
 class PulsmesserBLEDevice(BLEDevice):
     """

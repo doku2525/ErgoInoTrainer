@@ -7,135 +7,13 @@ import jsonpickle
 
 from src.classes.applikationmodel import ApplikationModell
 from src.classes.applikationview import ApplikationView
+from src.classes.controllerstatus import ControllerStatus
 from src.classes.datenprozessor import DatenProcessor
 from src.classes.stoppuhr import FlexibleZeit
 from src.classes.viewdatenmodell import ViewDatenModell
 from src.classes.bledevice import PulswerteDatenObjekt, BLEHeartRateData
 import src.classes.viewdatenmodell as viewdatenmodell
 from src.modules import audiomodul
-
-
-def update_daten_modell(daten_modell: ViewDatenModell = ViewDatenModell(), status: Status = None) -> ViewDatenModell:
-    def berechne_zeit_timer() -> int:
-        # Gibt die Zeit in Sekunden zurueck
-        berechnete_zeit = int(status.modell.trainingsprogramm.fuehre_aus(status.gestoppte_zeit.als_ms()).dauer() -
-                              status.modell.trainingsprogramm.
-                              trainingszeit_dauer_aktueller_inhalt(status.gestoppte_zeit.als_ms()))
-        if berechnete_zeit == status.modell.trainingsprogramm.fuehre_aus(status.gestoppte_zeit.als_ms()).dauer():
-            return int(berechnete_zeit / 1000)
-        if berechnete_zeit < 0:     # Verhindert, dass am Ende des Trainings 2, 1, 1, 0, -1 gezaehlt wird
-            return int(berechnete_zeit / 1000)
-        return int(berechnete_zeit / 1000) + 1
-
-    if status is None:
-        return daten_modell
-
-    berechneter_zeit_timer = berechne_zeit_timer()
-    return daten_modell._replace(**{
-        'zeit_gesamt': str(datetime.timedelta(seconds=int(status.gestoppte_zeit.als_s()))),
-        'zeit_timer': abs(berechneter_zeit_timer),
-        'zeit_timer_string': (str(
-            datetime.timedelta(seconds=abs(berechneter_zeit_timer))) +
-            ('\u2297' if status.pause_nach_aktuellem_inhalt else '')),
-        'cad_frequenz': status.modell.ergo.lese_cadence(),
-        'cad_durchschnitt': status.modell.ergo.calc_cad_durchschnitt(status.modell.akuelle_zeit().als_ms(), 1),
-        'cad_aktuell': status.werte_nach_trainngsplan[2],
-        'cad_differenz': status.modell.ergo.lese_cadence() - status.werte_nach_trainngsplan[2],
-        'pwm_wert': status.berechne_pwm_wert() / 100.0,
-        'distanze': status.modell.ergo.lese_distance(),
-        'distanze_am_ziel': status.modell.ergo.calc_distanze_am_ende(status.gestoppte_zeit.als_ms(),
-                                                                     status.modell.trainingsprogramm.
-                                                                     trainingszeit_dauer_gesamt()),
-        'power_aktuell': status.modell.ergo.calc_power_index(2),
-        'power_gesamt': status.modell.zonen.calcPowerGesamt(),
-        'power_durchschnitt': status.modell.zonen.calcPowerDurchschnitt(),
-        'power_watt': status.modell.ergo.calc_power_watt(),
-        'werte_und_power': status.modell.zonen.mergeWerteAndPower(),
-        'herz_frequenz': status.modell.pulsmesser.herzfrequenz,
-        'herz_gesamt': status.modell.pulsmesser.herzschlaege,
-        'herz_durchschnitt': status.modell.pulsmesser.calc_puls_durchschnitt(status.modell.akuelle_zeit().als_ms()),
-        'herz_batterielevel': status.modell.puls_device.batterie_level,
-        'device_werte': str(status.modell.board.device_daten.__dict__),
-        'trainings_name': status.modell.trainingsprogramm.name,
-        'trainings_inhalt': status.modell.trainingsprogramm.fuehre_aus(status.gestoppte_zeit.als_ms()).name,
-        'trainings_gesamtzeit': (str(
-            datetime.timedelta(milliseconds=status.modell.trainingsprogramm.trainingszeit_dauer_gesamt())) +
-            (' ∞' if status.modell.trainingsprogramm.unendlich else ' \u2297')),
-        'intervall_distanze': status.modell.trainingsprogramm.berechne_distanze_aktueller_inhalt(),
-        'intervall_cad': round(status.modell.trainingsprogramm.berechne_distanze_aktueller_inhalt() * 60 /
-                               (status.modell.trainingsprogramm.trainingszeit_dauer_aktueller_inhalt(
-                                   status.gestoppte_zeit.als_ms() + 1) / 1000)),
-        'intervall_tabelle': [[dist, int(dist * 60 // (zeit / 1000)), 0, 0, farbe]
-                              for dist, zeit, farbe in
-                              zip(status.modell.trainingsprogramm.berechne_distanze_pro_fertige_inhalte(),
-                                  [elem.dauer() for elem in status.modell.trainingsprogramm.inhalte],
-                                  [ApplikationView.farbe_rot if elem.name == 'Intervall' else
-                                   ApplikationView.farbe_gruen
-                                   for elem in status.modell.trainingsprogramm.inhalte])
-                              ],
-        'anzahl_sets':
-            len(list(filter(lambda elem: elem.name == 'Intervall', status.modell.trainingsprogramm.inhalte))),
-        'anzahl_fertige_sets':
-            len(list(filter(lambda elem: elem.name == 'Intervall', status.modell.trainingsprogramm.inhalte))) -
-            len(list(filter(lambda elem: elem.name == 'Intervall',
-                            [elem
-                             for _, elem
-                             in zip(status.modell.trainingsprogramm.berechne_distanze_pro_fertige_inhalte(),
-                                    status.modell.trainingsprogramm.inhalte)]))),
-        'intervall_farbe': ApplikationView.farbe_rot if status.modell.trainingsprogramm.fuehre_aus(
-            status.gestoppte_zeit.als_ms()).name == 'Intervall' else ApplikationView.farbe_gruen})
-
-
-class Status:
-    def __init__(self, modell: ApplikationModell, schleifen_zeit_in_ms: int = 1000,
-                 pause_nach_aktuellem_inhalt: bool = False):
-        self.gedrueckte_taste = ''
-        self.modell: ApplikationModell = modell
-        self.gestoppte_zeit: FlexibleZeit = self.modell.akuelle_zeit()
-        self.schleifen_zeit: FlexibleZeit = FlexibleZeit.create_from_millis(schleifen_zeit_in_ms)
-        self.zeit_fuer_naechstes_update: FlexibleZeit = self.gestoppte_zeit + self.schleifen_zeit
-        self.werte_nach_trainngsplan = None
-        self.audio_playlist = audiomodul.build_playlist(trainingsplan=modell.trainingsprogramm,
-                                                        audio_objekte=audiomodul.MEINE_AUDIO_OBJEKTE)
-        self.pause_nach_aktuellem_inhalt = pause_nach_aktuellem_inhalt
-
-    def programm_beenden(self) -> bool:
-        return self.gedrueckte_taste == 'QUIT'
-
-    def update_zeit(self) -> Status:
-        self.gestoppte_zeit = self.modell.akuelle_zeit()
-        return self
-
-    def es_ist_zeit_fuer_update(self) -> bool:
-        # !!! Bei (not gestoppte_zeit > self.zeit_fuer_naechstes_update) manchmal 2 Zeiten pro sek im Timer
-        # Z.B. 9 8 8 6 5 4 4 2  TODO Den Kommentar irgendwann loeschen
-        return self.gestoppte_zeit > self.zeit_fuer_naechstes_update
-
-    def berechne_neue_updatezeit(self) -> Status:
-        self.zeit_fuer_naechstes_update = self.zeit_fuer_naechstes_update + self.schleifen_zeit
-        return self
-
-    def update_werte_nach_trainingsplan(self) -> Status:
-        self.werte_nach_trainngsplan = (self.modell.trainingsprogramm.
-                                        fuehre_aus(self.gestoppte_zeit.als_ms()).
-                                        berechne_werte(self.gestoppte_zeit.als_ms()))
-        return self
-
-    def berechne_pwm_wert(self) -> int:
-        return self.modell.ergo.berechne_korigierten_bremswert(ausgangs_wert=self.werte_nach_trainngsplan[1],
-                                                               name=self.werte_nach_trainngsplan[0])
-
-    def trainingsende_pause_machen(self) -> bool:
-        return (self.es_ist_zeit_fuer_update() and
-                self.modell.trainingsprogramm.trainingszeit_dauer_gesamt() < self.gestoppte_zeit.als_ms() and
-                not self.modell.trainingsprogramm.unendlich)
-
-    def pause_am_ende_des_aktuellen_inahlts(self) -> bool:
-        berechnete_zeit = (self.modell.trainingsprogramm.
-                           trainingszeit_dauer_aktueller_inhalt(self.gestoppte_zeit.als_ms()))
-        return (self.es_ist_zeit_fuer_update() and
-                self.pause_nach_aktuellem_inhalt and
-                self.modell.trainingsprogramm.trainingszeit_dauer_aktueller_inhalt(self.gestoppte_zeit.als_ms()) < 100)
 
 
 class ApplikationController:
@@ -177,7 +55,7 @@ class ApplikationController:
             case 0: return key_bindings_ohne_modifier.get(key, "")      # Ohne Modifier
             case _: ""                                                  # Noch nicht implementierte Modifier
 
-    def command_mapper(self, status: Status) -> Callable:
+    def command_mapper(self, status: ControllerStatus) -> Callable:
         def pause_mit_zeit():
             if self.modell.uhr.macht_pause():
                 self.modell.uhr = self.modell.uhr.start(self.modell.millis_jetzt())
@@ -214,7 +92,7 @@ class ApplikationController:
         #         datei.write(jsonpickle.encode(elem) + "\n")
         self.modell.board.sendeUndLeseWerte(0)  # Bremse auf 0 um das PWM-Summen an der Bremse zu stoppen
 
-    def process_tastatureingabe(self, status: Status = None) -> Status:
+    def process_tastatureingabe(self, status: ControllerStatus = None) -> ControllerStatus:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.beende_programm()
@@ -229,13 +107,13 @@ class ApplikationController:
                         status.modell.ergo = result
         return status
 
-    def update_ergometer(self, status: Status) -> None:
+    def update_ergometer(self, status: ControllerStatus) -> None:
         status.modell.ergo = (self.modell.ergo.
                               setBremse(status.werte_nach_trainngsplan[1]).
                               update_device_werte(self.modell.board.device_daten))
 
     @staticmethod
-    def update_musik(status: Status) -> None:
+    def update_musik(status: ControllerStatus) -> None:
         # TODO Evtl. Musik mit Pausenfunktion syncronisieren
         # TODO Zeige in GUI an, ob Playlist verfuegbar ist
         result = audiomodul.play_audio_schedule(playlist=status.audio_playlist,
@@ -251,7 +129,7 @@ class ApplikationController:
         elif args:
             audiomodul.AUDIO_VOLUME_FADINGOUT = False
 
-    def update_pulswerte(self, status: Status) -> None:
+    def update_pulswerte(self, status: ControllerStatus) -> None:
         if status.modell.puls_device.connected:
             status.modell.pulsmesser = status.modell.pulsmesser.verarbeite_device_werte(
                 status.modell.puls_device.lese_messwerte())
@@ -260,7 +138,8 @@ class ApplikationController:
                 status.modell.pulsmesser = status.modell.pulsmesser.verarbeite_device_werte(
                     PulswerteDatenObjekt(zeitstempel=0, ble_objekt=BLEHeartRateData(16, 0, [])).ble_objekt)
 
-    def update_daten(self, status: Status, daten_modell: ViewDatenModell) -> tuple[Status, ViewDatenModell]:
+    def update_daten(self, status: ControllerStatus,
+                     daten_modell: ViewDatenModell) -> tuple[ControllerStatus, ViewDatenModell]:
         # TODO Unterteile in Updates, die waherend der Pause nicht durchgefuehrt werden muessen und staendigen
         # TODO Herzwerte durch Dummy bzw. echte BLEDvice testen.
         status.update_werte_nach_trainingsplan()
@@ -274,10 +153,10 @@ class ApplikationController:
             status.modell.zonen.updateZone(pwm=status.berechne_pwm_wert() / 100, zeit=status.gestoppte_zeit,
                                            dist=status.modell.ergo.lese_distance(),
                                            herz=status.modell.pulsmesser.herzschlaege)
-        neue_daten = update_daten_modell(daten_modell=daten_modell, status=status)
+        neue_daten = viewdatenmodell.update_daten_modell(daten_modell=daten_modell, status=status)
         return status, neue_daten
 
-    def zeichne_view_und_log(self, status: Status, daten_modell: ViewDatenModell) -> None:
+    def zeichne_view_und_log(self, status: ControllerStatus, daten_modell: ViewDatenModell) -> None:
         if status.es_ist_zeit_fuer_update():
             log_string = f"{viewdatenmodell.erzeuge_log_string(daten_modell)}"
             print(log_string)
@@ -315,7 +194,7 @@ class ApplikationController:
         # Eingabe Arduino, Pygame-Zeit und Tastur(= "")
         self.modell.board.sendeUndLeseWerte(0)
         clock = pygame.time.Clock()
-        status = Status(modell=self.modell)
+        status = ControllerStatus(modell=self.modell)
         daten_modell = ViewDatenModell()
 
         # *******
