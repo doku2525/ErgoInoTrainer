@@ -2,6 +2,7 @@ from flask import Flask, jsonify, render_template, Request, request, redirect, R
 from threading import Thread
 import logging as lg
 
+from dataclasses import asdict
 from src.classes.viewdatenmodell import ViewDatenmodell
 
 
@@ -26,7 +27,7 @@ class FlaskView:
 
         @self.app.route('/get_data')
         def get_data():
-            return jsonify(self.daten._asdict())
+            return jsonify(asdict(self.daten))
 
         # Routen mit den Befehlen
         @self.app.route('/pause')
