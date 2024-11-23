@@ -9,6 +9,7 @@ class test_Pulsmesser(TestCase):
         self.assertEqual(0, obj.herzfrequenz)
         self.assertEqual(0, obj.herzschlaege)
         self.assertEqual((), obj.rr_intervall)
+        self.assertIsNone(obj.last_raw_data)
 
     def test_verarbeite_device_werte(self):
         obj = Pulsmesser()
@@ -17,20 +18,24 @@ class test_Pulsmesser(TestCase):
         self.assertEqual(120, obj.herzfrequenz)
         self.assertEqual(2, obj.herzschlaege)
         self.assertEqual((500, 500), obj.rr_intervall)
+        self.assertEqual(device_data, obj.last_raw_data)
         obj = obj.verarbeite_device_werte(device_data)
         self.assertEqual(120, obj.herzfrequenz)
         self.assertEqual(4, obj.herzschlaege)
         self.assertEqual((500, 500)*2, obj.rr_intervall)
+        self.assertEqual(device_data, obj.last_raw_data)
         device_data = BLEHeartRateData(16, 40, [])
         obj = obj.verarbeite_device_werte(device_data)
         self.assertEqual(40, obj.herzfrequenz)
         self.assertEqual(4, obj.herzschlaege)
         self.assertEqual((500, 500)*2, obj.rr_intervall)
+        self.assertEqual(device_data, obj.last_raw_data)
         device_data = BLEHeartRateData(16, 60, [1000])
         obj = obj.verarbeite_device_werte(device_data)
         self.assertEqual(60, obj.herzfrequenz)
         self.assertEqual(5, obj.herzschlaege)
         self.assertEqual(((500, 500) * 2) + (1000,), obj.rr_intervall)
+        self.assertEqual(device_data, obj.last_raw_data)
 
     def test_calc_puls_durchschnitt(self):
         obj = Pulsmesser(herzschlaege=60, herzfrequenz=120, rr_intervall=tuple(range(60)))

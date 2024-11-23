@@ -1,7 +1,7 @@
 # import bangla
 import pygame
 
-from src.classes.viewdatenmodell import ViewDatenModell
+from src.classes.viewdatenmodell import ViewDatenmodell
 
 
 class ApplikationView:
@@ -18,7 +18,7 @@ class ApplikationView:
         self._screen = pygame.display.set_mode((breite, hoehe))
         self._font = pygame.font.SysFont("Arial", 24)
         self._screen.fill(self.farbe_weiss)
-        self.daten = ViewDatenModell()
+        self.daten = ViewDatenmodell()
         self._text_farbe = self.farbe_gruen
         self.debug_werte = {}
 

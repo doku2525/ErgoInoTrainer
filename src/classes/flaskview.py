@@ -2,7 +2,7 @@ from flask import Flask, jsonify, render_template, Request, request, redirect, R
 from threading import Thread
 import logging as lg
 
-from src.classes.viewdatenmodell import ViewDatenModell
+from src.classes.viewdatenmodell import ViewDatenmodell
 
 
 class FlaskView:
@@ -15,7 +15,7 @@ class FlaskView:
         lg.basicConfig(level=lg.WARNING)
 
         self.app.logger.disabled = not logging
-        self.daten = ViewDatenModell()
+        self.daten = ViewDatenmodell()
         self.web_kommando = None
 
         # Route für die HTML-Datei

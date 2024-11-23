@@ -10,9 +10,8 @@ from src.classes.applikationview import ApplikationView
 from src.classes.controllerstatus import ControllerStatus
 from src.classes.datenprozessor import DatenProcessor
 from src.classes.stoppuhr import FlexibleZeit
-from src.classes.viewdatenmodell import ViewDatenModell
+from src.classes.viewdatenmodell import ViewDatenmodell
 from src.classes.bledevice import PulswerteDatenObjekt, BLEHeartRateData
-import src.classes.viewdatenmodell as viewdatenmodell
 from src.modules import audiomodul
 
 
@@ -139,7 +138,7 @@ class ApplikationController:
                     PulswerteDatenObjekt(zeitstempel=0, ble_objekt=BLEHeartRateData(16, 0, [])).ble_objekt)
 
     def update_daten(self, status: ControllerStatus,
-                     daten_modell: ViewDatenModell) -> tuple[ControllerStatus, ViewDatenModell]:
+                     daten_modell: ViewDatenmodell) -> tuple[ControllerStatus, ViewDatenmodell]:
         # TODO Unterteile in Updates, die waherend der Pause nicht durchgefuehrt werden muessen und staendigen
         # TODO Herzwerte durch Dummy bzw. echte BLEDvice testen.
         status.update_werte_nach_trainingsplan()
@@ -153,12 +152,12 @@ class ApplikationController:
             status.modell.zonen.updateZone(pwm=status.berechne_pwm_wert() / 100, zeit=status.gestoppte_zeit,
                                            dist=status.modell.ergo.lese_distance(),
                                            herz=status.modell.pulsmesser.herzschlaege)
-        neue_daten = viewdatenmodell.update_daten_modell(daten_modell=daten_modell, status=status)
+        neue_daten = daten_modell.update_daten_modell(status=status)
         return status, neue_daten
 
-    def zeichne_view_und_log(self, status: ControllerStatus, daten_modell: ViewDatenModell) -> None:
+    def zeichne_view_und_log(self, status: ControllerStatus, daten_modell: ViewDatenmodell) -> None:
         if status.es_ist_zeit_fuer_update():
-            log_string = f"{viewdatenmodell.erzeuge_log_string(daten_modell)}"
+            log_string = f"{daten_modell.erzeuge_log_string()}"
             print(log_string)
             if self.log_file is not None:
                 with open(self.log_file, "a") as f:
@@ -195,7 +194,7 @@ class ApplikationController:
         self.modell.board.sendeUndLeseWerte(0)
         clock = pygame.time.Clock()
         status = ControllerStatus(modell=self.modell)
-        daten_modell = ViewDatenModell()
+        daten_modell = ViewDatenmodell()
 
         # *******
         # Aktualisiere Trainingsplanwerte, Ergometerklasse
