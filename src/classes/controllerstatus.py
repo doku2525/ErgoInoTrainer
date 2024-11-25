@@ -48,9 +48,10 @@ class ControllerStatus:
                 self.modell.trainingsprogramm.trainingszeit_dauer_gesamt() < self.gestoppte_zeit.als_ms() and
                 not self.modell.trainingsprogramm.unendlich)
 
-    def pause_am_ende_des_aktuellen_inahlts(self) -> bool:
-        berechnete_zeit = (self.modell.trainingsprogramm.
-                           trainingszeit_dauer_aktueller_inhalt(self.gestoppte_zeit.als_ms()))
+    def pause_am_ende_des_aktuellen_inhalts(self) -> bool:
+        # TODO Loesche auskommentierten Code
+        # berechnete_zeit = (self.modell.trainingsprogramm.
+        #                    trainingszeit_dauer_aktueller_inhalt(self.gestoppte_zeit.als_ms()))
         return (self.es_ist_zeit_fuer_update() and
                 self.pause_nach_aktuellem_inhalt and
                 self.modell.trainingsprogramm.trainingszeit_dauer_aktueller_inhalt(self.gestoppte_zeit.als_ms()) < 100)

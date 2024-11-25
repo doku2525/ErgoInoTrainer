@@ -6,6 +6,8 @@ import src.modules.audiomodul as audio
 import pygame
 
 
+# ----------------------
+# Kommandos
 def beende_programm(status: ControllerStatus) -> None:
     status.modell.board.sendeUndLeseWerte(0)
 
@@ -85,3 +87,23 @@ COMMANDS = [
 ]
 
 ALLE_SHIFT_MODIFIER = [pygame.KMOD_SHIFT, pygame.KMOD_LSHIFT, pygame.KMOD_RSHIFT]
+
+
+def key_mapper(key: int, modifier: int = 0) -> str:
+    # Ohne Modifier werden zu (0, key) umgewandelt
+    key_bindings = {(modifier, taste): commando.command_string
+                    for commando in COMMANDS
+                    for key in commando.key_bindings
+                    for modifier, taste in ([key] if isinstance(key, tuple) else [(0, key)])}
+    return key_bindings.get((modifier, key), "")
+
+
+def command_mapper(status: ControllerStatus) -> Callable:
+    # Das Komando besteht aus einem tupel[Callable, dict[args]]
+    command_map = {commando.command_string: (commando.funktion,
+                                             commando.kwargs | ({'status': status} if
+                                                                commando.kwargs.get('status', False)
+                                                                else {}))
+                   for commando
+                   in COMMANDS}
+    return command_map.get(status.gedrueckte_taste, lambda: None)

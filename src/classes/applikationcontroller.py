@@ -25,25 +25,6 @@ class ApplikationController:
         self.daten: DatenProcessor = DatenProcessor()
         self.log_file: str = log_file
 
-    @staticmethod
-    def key_mapper(key: int, modifier: int = 0) -> str:
-        # Ohne Modifier werden zu (0, key) umgewandelt
-        key_bindings = {(modifier, taste): commando.command_string
-                        for commando in cmd.COMMANDS
-                        for key in commando.key_bindings
-                        for modifier, taste in ([key] if isinstance(key, tuple) else [(0, key)])}
-        return key_bindings.get((modifier,key), "")
-
-    def command_mapper(self, status: ControllerStatus) -> Callable:
-        # Das Komando besteht aus einem tupel[Callable, dict[args]]
-        command_map = {commando.command_string: (commando.funktion,
-                                                 commando.kwargs | ({'status': status} if
-                                                                    commando.kwargs.get('status', False)
-                                                                    else {}))
-                       for commando
-                       in cmd.COMMANDS}
-        return command_map.get(status.gedrueckte_taste, lambda: None)
-
     def process_tastatureingabe(self, status: ControllerStatus = None) -> ControllerStatus:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -51,10 +32,10 @@ class ApplikationController:
                 sys.exit()
             if event.type == pygame.KEYDOWN:
                 print(f"Taste: {event.key} {event.mod}")  # TODO Zum Ermitteln eines Taste-CODES die Zeile auskommentieren
-                status.gedrueckte_taste = ApplikationController.key_mapper(event.key, event.mod)
+                status.gedrueckte_taste = cmd.key_mapper(event.key, event.mod)
                 if status.gedrueckte_taste:
                     # Fuehre den zur gedrueckten Taste passenden Befehl aus.
-                    funktion, argumente = self.command_mapper(status)
+                    funktion, argumente = cmd.command_mapper(status)
                     if isinstance(result := funktion(**argumente), self.modell.ergo.__class__):
                         status.modell.ergo = result
         return status
@@ -68,6 +49,7 @@ class ApplikationController:
     def update_musik(status: ControllerStatus) -> None:
         # TODO Evtl. Musik mit Pausenfunktion syncronisieren
         # TODO Zeige in GUI an, ob Playlist verfuegbar ist
+        # TODO Sollte vielleicht in ControllerStatus ausgelagert werden?
         result = audiomodul.play_audio_schedule(playlist=status.audio_playlist,
                                                 aktuelle_zeit_in_ms=status.gestoppte_zeit.als_ms(),
                                                 busy_status=pygame.mixer.music.get_busy())
@@ -125,7 +107,7 @@ class ApplikationController:
                 if v.browser_key is not None:
                     status.gedrueckte_taste = v.browser_key
                     v.browser_key = None
-                    funktion, argumente = self.command_mapper(status)
+                    funktion, argumente = cmd.command_mapper(status)
                     print(f"Fehler: {funktion} {argumente}")
                     if isinstance(result := funktion(**argumente), self.modell.ergo.__class__):
                         status.modell.ergo = result
@@ -175,13 +157,13 @@ class ApplikationController:
 
             if status.trainingsende_pause_machen():
                 status.gedrueckte_taste = "PAUSE"
-                funct, args = self.command_mapper(status)
+                funct, args = cmd.command_mapper(status)
                 funct(**args)
                 status.modell.trainingsprogramm.unendlich = True
 
-            if status.pause_am_ende_des_aktuellen_inahlts():
+            if status.pause_am_ende_des_aktuellen_inhalts():
                 status.gedrueckte_taste = "PAUSE"
-                funct, args = self.command_mapper(status)
+                funct, args = cmd.command_mapper(status)
                 funct(**args)
                 status.pause_nach_aktuellem_inhalt = False
 
