@@ -5,6 +5,7 @@ import logging as lg
 
 from dataclasses import asdict
 from src.classes.viewdatenmodell import ViewDatenmodell
+import src.classes.commandmapper as cmd
 
 
 class FlaskView:
@@ -20,16 +21,11 @@ class FlaskView:
         self.daten = ViewDatenmodell()
         self.web_kommando = None
 
-        self.web_kommando_mappings = {
-            'pause': 'PAUSE',
-            'musik_mute': 'MUSIK_MUTE',
-            'pwm_plusplus': 'PWM++',
-            'pwm_plus': 'PWM+',
-            'pwm_minusminus': 'PWM--',
-            'pwm_minus': 'PWM-',
-            'pause_nach_inhalt': 'PAUSE_NACH_INHALT',
-            'change_trainigsprogramm_unendlich': 'CHANGE_TRANINGSPROGRAMM_UNENDLICH'
-        }
+        # Erzeuge dict mit Kommandos aus cmd.COMMANDS
+        self.web_kommando_mappings = {commando.flask_route: commando.command_string
+                                      for commando
+                                      in cmd.COMMANDS if commando.flask_route is not None}
+
         self.register_kommando_routes()
         self.define_manual_routes()
 
