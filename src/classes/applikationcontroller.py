@@ -27,20 +27,12 @@ class ApplikationController:
 
     @staticmethod
     def key_mapper(key: int, modifier: int = 0) -> str:
-        key_bindings_ohne_modifier = {key: commando.command_string
-                                      for commando in cmd.COMMANDS
-                                      for key in commando.key_bindings if isinstance(key, int)}
-        key_bindings_mit_shift_modifier = {key[1]: commando.command_string         # Mit gedrueckter SHIFT-Taste
-                                      for commando in cmd.COMMANDS
-                                      for key
-                                           in commando.key_bindings if (isinstance(key, tuple) and
-                                                                        key[0] in cmd.ALLE_SHIFT_MODIFIER)}
-
-        match modifier:                     # NumLock => KMOD_NUM = 4096
-            case pygame.KMOD_SHIFT | pygame.KMOD_LSHIFT | pygame.KMOD_RSHIFT:
-                return key_bindings_mit_shift_modifier.get(key, "")
-            case 0: return key_bindings_ohne_modifier.get(key, "")      # Ohne Modifier
-            case _: ""                                                  # Noch nicht implementierte Modifier
+        # Ohne Modifier werden zu (0, key) umgewandelt
+        key_bindings = {(modifier, taste): commando.command_string
+                        for commando in cmd.COMMANDS
+                        for key in commando.key_bindings
+                        for modifier, taste in ([key] if isinstance(key, tuple) else [(0, key)])}
+        return key_bindings.get((modifier,key), "")
 
     def command_mapper(self, status: ControllerStatus) -> Callable:
         # Das Komando besteht aus einem tupel[Callable, dict[args]]

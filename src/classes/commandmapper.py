@@ -52,6 +52,9 @@ class CommandMapper:
 
 
 # K_KP... = Keypadtasten
+# NumLock => KMOD_NUM = 4096    als Modifier
+# WICHTIG !!! ctrl+alt+key wird nicht erkannt.
+# Aber ctrl+shift, alt+shift, NumLock+Alt+Shift+key etc wird erkannt.
 COMMANDS = [
     CommandMapper(command_string="QUIT", key_bindings=[pygame.K_q],
                   flask_route=None, funktion=beende_programm, kwargs={'status': True}),
@@ -74,7 +77,8 @@ COMMANDS = [
     CommandMapper(command_string="PAUSE_NACH_INHALT", key_bindings=[pygame.K_e],
                   flask_route='pause_nach_inhalt', funktion=pause_nach_inhalt, kwargs={'status': True}),
     CommandMapper(command_string="CHANGE_TRANINGSPROGRAMM_UNENDLICH",
-                  key_bindings=[(pygame.KMOD_SHIFT, pygame.K_e), (pygame.KMOD_LSHIFT, pygame.K_e),
+                  key_bindings=[(pygame.KMOD_SHIFT, pygame.K_e),
+                                (pygame.KMOD_LSHIFT, pygame.K_e),
                                 (pygame.KMOD_RSHIFT, pygame.K_e)],
                   flask_route='change_trainigsprogramm_unendlich',
                   funktion=change_unendlich_status_in_trainingsprogramm, kwargs={'status': True}),
