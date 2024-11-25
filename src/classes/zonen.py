@@ -1,5 +1,8 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
 import copy
-from src.classes.stoppuhr import FlexibleZeit
+if TYPE_CHECKING:
+    from src.classes.stoppuhr import FlexibleZeit
 
 
 class Zonen:

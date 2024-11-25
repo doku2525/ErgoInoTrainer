@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 import json
 import os
 
+
 @dataclass(frozen=True)
 class AudioObjekt:
     filename: str = ''                                          # Z.B. tabata.mp3
@@ -29,7 +30,7 @@ def load_audio_objekte(json_file: str) -> list[AudioObjekt]:
         return []
 
 
-def save_audio_objekte(json_file: str, liste_mit_objekten: AudioObjekt):
+def save_audio_objekte(json_file: str, liste_mit_objekten: list[AudioObjekt]):
     with open(json_file, 'w') as file:
         data = [obj.__dict__ for obj in liste_mit_objekten]
         json.dump(data, file, indent=4)

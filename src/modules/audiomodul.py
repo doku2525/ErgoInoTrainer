@@ -1,12 +1,14 @@
-from typing import Callable
+from __future__ import annotations
+from typing import Callable, TYPE_CHECKING
 from collections import namedtuple
 import pygame.mixer
 from pygame.mixer import music
 
-from src.classes.audioobjekt import AudioObjekt, load_audio_objekte
-from src.classes.trainingsprogramm import Trainingsprogramm
-from src.classes.trainingsinhalt import Trainingsinhalt
-
+from src.classes.audioobjekt import load_audio_objekte
+if TYPE_CHECKING:
+    from src.classes.trainingsprogramm import Trainingsprogramm
+    from src.classes.trainingsinhalt import Trainingsinhalt
+    from src.classes.audioobjekt import AudioObjekt
 
 # Datentyp fuer meine Playlist (playlist: list[PlaylistAudioObjekt]), mit startzeit und endzeit innerhalb der Playlist
 PlaylistAudioObjekt = namedtuple('PlaylistAudioObjekt', ['startzeit', 'endzeit', 'objekt'])

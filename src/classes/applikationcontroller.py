@@ -1,19 +1,17 @@
 from __future__ import annotations
-from typing import Callable
+from typing import Callable, TYPE_CHECKING
 import sys
 import pygame
 import datetime
-import jsonpickle
 
-from src.classes.applikationmodel import ApplikationModell
-from src.classes.applikationview import ApplikationView
 from src.classes.controllerstatus import ControllerStatus
-from src.classes.datenprozessor import DatenProcessor
-from src.classes.stoppuhr import FlexibleZeit
 from src.classes.viewdatenmodell import ViewDatenmodell
-from src.classes.bledevice import PulswerteDatenObjekt, BLEHeartRateData
-from src.modules import audiomodul
 import src.classes.commandmapper as cmd
+from src.classes.datenprozessor import DatenProcessor   # TODO Noch wurde DatenProcessor nicht implementiert!!!
+
+if TYPE_CHECKING:
+    from src.classes.applikationmodel import ApplikationModell
+    from src.classes.applikationview import ApplikationView
 
 
 class ApplikationController:
@@ -22,7 +20,7 @@ class ApplikationController:
                  log_file: str = None):
         self.modell: ApplikationModell = model
         self.views: list[ApplikationView] = views
-        self.daten: DatenProcessor = DatenProcessor()
+        self.daten: DatenProcessor = DatenProcessor()       # TODO Noch wurde DatenProcessor nicht implementiert!!!
         self.log_file: str = log_file
 
     def process_tastatureingabe(self, status: ControllerStatus = None) -> ControllerStatus:
@@ -31,7 +29,7 @@ class ApplikationController:
                 cmd.beende_programm(status=status)
                 sys.exit()
             if event.type == pygame.KEYDOWN:
-                print(f"Taste: {event.key} {event.mod}")  # TODO Zum Ermitteln eines Taste-CODES die Zeile auskommentieren
+                # print(f"Taste: {event.key} {event.mod}")  # TODO Zum Ermitteln einer Taste die Zeile auskommentieren
                 status.gedrueckte_taste = cmd.key_mapper(event.key, event.mod)
                 if status.gedrueckte_taste:
                     # Fuehre den zur gedrueckten Taste passenden Befehl aus.
@@ -39,56 +37,6 @@ class ApplikationController:
                     if isinstance(result := funktion(**argumente), self.modell.ergo.__class__):
                         status.modell.ergo = result
         return status
-
-    def update_ergometer(self, status: ControllerStatus) -> None:
-        status.modell.ergo = (self.modell.ergo.
-                              setBremse(status.werte_nach_trainngsplan[1]).
-                              update_device_werte(self.modell.board.device_daten))
-
-    @staticmethod
-    def update_musik(status: ControllerStatus) -> None:
-        # TODO Evtl. Musik mit Pausenfunktion syncronisieren
-        # TODO Zeige in GUI an, ob Playlist verfuegbar ist
-        # TODO Sollte vielleicht in ControllerStatus ausgelagert werden?
-        result = audiomodul.play_audio_schedule(playlist=status.audio_playlist,
-                                                aktuelle_zeit_in_ms=status.gestoppte_zeit.als_ms(),
-                                                busy_status=pygame.mixer.music.get_busy())
-        audiomodul.AUDIOOBJEKT_AKTIVE, status.audio_playlist, (audiofunc, args) = result
-        # Wenn Trainingszeit abgelaufen ist, lasse das letzte Lied auslaufen.
-        if status.gestoppte_zeit.als_ms() >= status.modell.trainingsprogramm.trainingszeit_dauer_gesamt():
-            return None
-        audiofunc(**args)
-        if audiofunc == audiomodul.fadeout_musik:   # FLAG um doppeltes fadeout zu verhindern
-            audiomodul.AUDIO_VOLUME_FADINGOUT = True
-        elif args:
-            audiomodul.AUDIO_VOLUME_FADINGOUT = False
-
-    def update_pulswerte(self, status: ControllerStatus) -> None:
-        if status.modell.puls_device.connected:
-            status.modell.pulsmesser = status.modell.pulsmesser.verarbeite_device_werte(
-                status.modell.puls_device.lese_messwerte())
-        else:
-            if status.es_ist_zeit_fuer_update():
-                status.modell.pulsmesser = status.modell.pulsmesser.verarbeite_device_werte(
-                    PulswerteDatenObjekt(zeitstempel=0, ble_objekt=BLEHeartRateData(16, 0, [])).ble_objekt)
-
-    def update_daten(self, status: ControllerStatus,
-                     daten_modell: ViewDatenmodell) -> tuple[ControllerStatus, ViewDatenmodell]:
-        # TODO Unterteile in Updates, die waherend der Pause nicht durchgefuehrt werden muessen und staendigen
-        # TODO Herzwerte durch Dummy bzw. echte BLEDvice testen.
-        status.update_werte_nach_trainingsplan()
-        status.modell.trainingsprogramm.verarbeite_messwerte(status.gestoppte_zeit.als_ms(),
-                                                             status.modell.ergo.lese_distance())
-        self.update_musik(status)
-        self.update_ergometer(status)
-        self.update_pulswerte(status)
-        if not status.modell.uhr.macht_pause():
-            # TODO Herz = Gesamtzahl der Schlaege,[ herz += len(ble_heartrate_data.rr_intervall)];
-            status.modell.zonen.updateZone(pwm=status.berechne_pwm_wert() / 100, zeit=status.gestoppte_zeit,
-                                           dist=status.modell.ergo.lese_distance(),
-                                           herz=status.modell.pulsmesser.herzschlaege)
-        neue_daten = daten_modell.update_daten_modell(status=status)
-        return status, neue_daten
 
     def zeichne_view_und_log(self, status: ControllerStatus, daten_modell: ViewDatenmodell) -> None:
         if status.es_ist_zeit_fuer_update():
@@ -135,12 +83,12 @@ class ApplikationController:
         # *******
         # Aktualisiere Trainingsplanwerte, Ergometerklasse
         status.update_werte_nach_trainingsplan()
-        self.update_ergometer(status)
+        status.update_ergometer()
 
         while not status.programm_beenden():
             # ********
             # Eingabe Zeit, Devices, Tastatur
-            status.update_zeit()
+            status.stoppe_zeit()
             self.modell.board.sendeUndLeseWerte(            # Wenn pause sende 0 an Arduino, damit summen aufhoert
                 status.berechne_pwm_wert() if not status.modell.uhr.macht_pause() else 0)     # ErgometerDevice
 
@@ -149,7 +97,7 @@ class ApplikationController:
 
             # ********
             # Aktualisiere die Trainingsplanwerte, Ergometerklasse, Zonenklasse und Daten
-            status, daten_modell = self.update_daten(status, daten_modell)
+            status, daten_modell = status.update_daten(daten_modell)
 
             # ********
             # Zeichne/Schreibe Logdatei

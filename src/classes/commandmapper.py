@@ -1,9 +1,12 @@
-from typing import Callable
+from __future__ import annotations
+from typing import Callable, TYPE_CHECKING
 from dataclasses import dataclass, field
-from src.classes.controllerstatus import ControllerStatus
-from src.classes.ergometer import Ergometer
 import src.modules.audiomodul as audio
 import pygame
+
+if TYPE_CHECKING:
+    from src.classes.controllerstatus import ControllerStatus
+    from src.classes.ergometer import Ergometer
 
 
 # ----------------------

@@ -1,7 +1,9 @@
 from __future__ import annotations
+from typing import TYPE_CHECKING
 from dataclasses import dataclass, field, replace
 import datetime
-from src.classes.controllerstatus import ControllerStatus
+if TYPE_CHECKING:
+    from src.classes.controllerstatus import ControllerStatus
 
 
 farbe_rot = (255, 0, 0)

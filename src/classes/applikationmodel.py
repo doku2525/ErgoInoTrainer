@@ -1,13 +1,15 @@
-from typing import Callable
+from __future__ import annotations
+from typing import Callable, TYPE_CHECKING
 import time
 import serial
 from src.classes.boardconnector import BoardConnector, suche_ports, meine_ports
 from src.classes.ergometerdevice import ArduinoDevice
 from src.classes.ergometer import Ergometer
-from src.classes.bledevice import PulsmesserBLEDevice
 from src.classes.pulsmesser import Pulsmesser
 from src.classes.stoppuhr import Stoppuhr, FlexibleZeit, ZE
 from src.classes.zonen import Zonen
+if TYPE_CHECKING:
+    from src.classes.bledevice import PulsmesserBLEDevice
 
 
 class ApplikationModell:
@@ -27,7 +29,6 @@ class ApplikationModell:
                                         ports=suche_ports(meine_ports), baudrate=57600)) if board is None else board
         self.pulsmesser = Pulsmesser()
         self.puls_device = ble_pulsdevice
-
 
     def akuelle_zeit(self) -> FlexibleZeit:
         return FlexibleZeit.create_from_millis(self.uhr.zeit(self.millis_jetzt()))

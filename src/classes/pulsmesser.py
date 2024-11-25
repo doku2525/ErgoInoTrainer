@@ -1,7 +1,8 @@
 from __future__ import annotations
-from typing import Tuple
+from typing import Tuple, TYPE_CHECKING
 from dataclasses import dataclass, field
-from src.classes.bledevice import BLEHeartRateData
+if TYPE_CHECKING:
+    from src.classes.bledevice import BLEHeartRateData
 
 
 @dataclass

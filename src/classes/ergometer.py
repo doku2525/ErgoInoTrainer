@@ -1,8 +1,9 @@
 from __future__ import annotations
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 from dataclasses import dataclass, field, replace
 from src.classes.stoppuhr import FlexibleZeit
-from src.classes.devicedatenmodell import DeviceDatenModell
+if TYPE_CHECKING:
+    from src.classes.devicedatenmodell import DeviceDatenModell
 
 
 @dataclass(frozen=True)
