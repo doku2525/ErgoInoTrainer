@@ -1,0 +1,155 @@
+@startuml
+' Styles
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+
+' Hauptklassen und Attribute
+
+class ApplikationController {
+    - modell: ApplikationModell
+    - views: List<ApplikationView>
+    - daten: DatenProcessor
+    - log_file: str
+    + process_tastatureingabe(status: ControllerStatus): ControllerStatus
+    + zeichne_view_und_log(status: ControllerStatus, daten_modell: ViewDatenmodell)
+    + programm_loop(fps: int)
+}
+
+class ApplikationModell {
+    - ergo: Ergometer
+    - zeitfunktion: Callable
+    - millis_jetzt: Callable
+    - uhr: Stoppuhr
+    - zonen: Zonen
+    - trainingsprogramm: Trainingsprogramm
+    - board: BoardConnector
+    - pulsmesser: Pulsmesser
+    - puls_device: PulsmesserBLEDevice
+    + akuelle_zeit(): FlexibleZeit
+}
+
+class ApplikationView {
+    - hoehe: int
+    - breite: int
+    - daten: ViewDatenmodell
+    + draw_daten(): None
+}
+class FlaskView {
+    - daten: ViewDatenmodell
+    - browser_key: str
+    + run(): None
+    + start_server(): None
+}
+
+class ViewDatenmodell {
+    - trainings_name: str
+    - herz_frequenz: int
+    - cad_frequenz: int
+    - power_aktuell: float
+    - distanze: int
+    + update_daten_modell(status: ControllerStatus): ViewDatenmodell
+    + berechne_ergometer_daten(status: ControllerStatus): ViewDatenmodell
+    + berechne_puls_daten(status: ControllerStatus): ViewDatenmodell
+}
+
+class ControllerStatus {
+    - gedrueckte_taste: str
+    - gestoppte_zeit: FlexibleZeit
+    - audio_playlist: List
+    - werte_nach_trainngsplan: Tuple
+    + update_pulswerte()
+    + update_daten(daten_modell: ViewDatenmodell): Tuple
+    + berechne_pwm_wert(): int
+}
+
+class Ergometer {
+    - bremse: int
+    - distanze: int
+    - korrekturwerte_bremse: dict
+    + setBremse(neuer_wert: int): Ergometer
+    + lese_distance(): int
+    + berechne_korigierten_bremswert(name: str, ausgangs_wert: int): int
+}
+
+class Pulsmesser {
+    - herzfrequenz: int
+    - herzschlaege: int
+    - rr_intervall: Tuple[int]
+    + verarbeite_device_werte(neue_werte: BLEHeartRateData): Pulsmesser
+    + calc_puls_durchschnitt(zeit_in_millis: int): int
+}
+
+class DatenProcessor {
+    - zeit_timer: FlexibleZeit
+    - trainings_name: str
+    - power_aktuell: float
+    - distanze: int
+}
+
+class Trainingsprogramm {
+    - name: str
+    - inhalte: List<Trainingsinhalt>
+    - unendlich: bool
+    + fuehre_aus(zeit_in_ms: int): Trainingsinhalt
+    + verarbeite_messwerte(zeit_in_ms: int, distanze: int)
+}
+
+class Trainingsinhalt {
+    + dauer(): int
+    + berechne_werte(zeit: int): Trainingswerte
+}
+
+class BoardConnector {
+    + sendeUndLeseWerte(pwm: int)
+}
+
+class BLEHeartRateData {
+    - herzfrequenz: int
+    - rr_intervall: List[int]
+    + from_raw_data(data: bytes): BLEHeartRateData
+}
+
+class PulsmesserBLEDevice {
+    + lese_messwerte(): BLEHeartRateData
+}
+
+class Zonen {
+    - zonen: dict
+    + updateZone(pwm: int, zeit: FlexibleZeit, dist: int, herz: int)
+}
+
+class FlexibleZeit {
+    + als_ms(): int
+    + als_s(): int
+}
+
+class AudioObjekt {
+    - filename: str
+    - trainingsplan: List[str]
+    + load_audio_objekte(json_file: str): List<AudioObjekt]
+}
+
+' Beziehungen
+ApplikationController --> ApplikationModell
+ApplikationController --> ApplikationView
+ApplikationController --> FlaskView
+ApplikationController --> ViewDatenmodell
+ApplikationController --> DatenProcessor
+ApplikationModell --> Ergometer
+ApplikationModell --> Stoppuhr
+ApplikationModell --> Zonen
+ApplikationModell --> Trainingsprogramm
+ApplikationModell --> Pulsmesser
+ApplikationModell --> PulsmesserBLEDevice
+ApplikationModell --> BoardConnector
+ApplikationView --> ViewDatenmodell
+FlaskView --> ViewDatenmodell
+ViewDatenmodell --> ControllerStatus
+ControllerStatus --> Ergometer
+ControllerStatus --> ViewDatenmodell
+ControllerStatus --> Pulsmesser
+Ergometer --> DatenProcessor
+Trainingsprogramm --> Trainingsinhalt
+Pulsmesser --> BLEHeartRateData
+
+@enduml
