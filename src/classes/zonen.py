@@ -12,7 +12,7 @@ class Zonen:
         self.daten = {}     # Wird offensichtlich ueberhaupt nicht verwendet
         self.__pwm = 0      # letzter PWM-Wert
 
-    def updateZone(self, pwm: int, zeit: FlexibleZeit, dist: int, herz: int = 0) -> None:
+    def updateZone(self, pwm: int | float, zeit: FlexibleZeit, dist: int, herz: int = 0) -> None:
         lokale_zeit = zeit.als_s()
         self.updateTacho(lokale_zeit, dist, herz)
         if len(self.zonen.keys()) == 0:
@@ -66,10 +66,10 @@ class Zonen:
             result[pwm]['dur'] = 60.0 * result[pwm]['all'] / werte[pwm]['zeit'] if werte[pwm]['zeit'] > 0 else 0
         return result
 
-    def calcPowerGesamt(self):
+    def calcPowerGesamt(self) -> int:
         return sum(map(lambda a: a['all'], self.calcPowerProZone().values()))
 
-    def calcPowerDurchschnitt(self):
+    def calcPowerDurchschnitt(self) -> float:
         if self.tachoWerte['zeit'][0] == 0:
             return 0
         else:
