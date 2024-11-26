@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from enum import Enum
 from typing import NewType, Callable
+from dataclasses import dataclass, field
 
 
 class BelastungTypen(Enum):
@@ -14,6 +15,7 @@ class BelastungTypen(Enum):
 Trainingswerte = NewType("Trainingswerte", tuple[str, int, int])
 
 
+@dataclass(frozen=True)
 class Trainingsinhalt(ABC):
     @abstractmethod
     def dauer(self) -> int:
@@ -28,13 +30,13 @@ class Trainingsinhalt(ABC):
         pass
 
 
+@dataclass(frozen=True)
 class Dauermethode(Trainingsinhalt):
-    def __init__(self, name: str, dauer_in_millis: int, cad: int, power: int, typ: BelastungTypen):
-        self.name = name
-        self.dauer_in_millis = dauer_in_millis
-        self.cad = cad
-        self.power = power
-        self.type = typ
+    name: str = field(default_factory=str)
+    dauer_in_millis: int = field(default_factory=int)
+    cad: int = field(default_factory=int)
+    power: int = field(default_factory=int)
+    typ: BelastungTypen = field(default_factory=BelastungTypen)
 
     def dauer(self) -> int:
         return self.dauer_in_millis
@@ -46,14 +48,13 @@ class Dauermethode(Trainingsinhalt):
         return Trainingswerte((self.name, self.power, self.cad))
 
 
+@dataclass(frozen=True)
 class Funktionsmethode(Trainingsinhalt):
-    def __init__(self, name: str, dauer_in_millis: int, cad: Callable[[int], int], power: Callable[[int], int],
-                 typ: BelastungTypen):
-        self.name = name
-        self.dauer_in_millis = dauer_in_millis
-        self.cad = cad
-        self.power = power
-        self.belastung = belastung
+    name: str = field(default_factory=str)
+    dauer_in_millis: int = field(default_factory=int)
+    cad: Callable[[int], int] = field(default=lambda x: x)
+    power: Callable[[int], int] = field(default=lambda x: x)
+    typ: BelastungTypen = field(default_factory=BelastungTypen)
 
     def dauer(self) -> int:
         return self.dauer_in_millis

@@ -4,10 +4,10 @@ from src.classes.trainingsinhalt import Trainingsinhalt
 
 class Trainingsprogramm:
     def __init__(self, name: str, inhalte: list[Trainingsinhalt], ergebnisse: list = None, unendlich: bool = True):
-        self.name = name
-        self.inhalte = inhalte  # Liste von Trainingsinhalt-Objekten
-        self.ergebnisse = [] if ergebnisse is None else ergebnisse
-        self.unendlich = unendlich  # FALSE = Beende die Ausfuehrung nach erreichen der Gesamttrainingszeit
+        self.name: str = name
+        self.inhalte: list[Trainingsinhalt] = inhalte  # Liste von Trainingsinhalt-Objekten
+        self.ergebnisse: list = [] if ergebnisse is None else ergebnisse
+        self.unendlich: bool = unendlich  # FALSE = Beende die Ausfuehrung nach erreichen der Gesamttrainingszeit
 
     # TODO self.unendlich wird noch nicht benutzt
     def fuehre_aus(self, zeit_in_ms: int) -> Trainingsinhalt:

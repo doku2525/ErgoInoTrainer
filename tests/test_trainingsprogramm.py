@@ -1,4 +1,5 @@
 from unittest import TestCase
+from dataclasses import replace
 
 from src.classes import trainingsinhalt
 from src.classes.trainingsprogramm import (Trainingsprogramm, erzeuge_trainingsprogramm_G1,
@@ -19,7 +20,7 @@ class test_Trainingsprogramm(TestCase):
         self.plan.inhalte = self.plan.inhalte * 5
         for index, element in enumerate(self.plan.inhalte):
             self.plan.inhalte[index] = copy.copy(element)
-            self.plan.inhalte[index].name = f"G{index}"
+            self.plan.inhalte[index] = replace(self.plan.inhalte[index], name=f"G{index}")
         self.assertEqual(self.plan.fuehre_aus(0).name, "G0")
         self.assertEqual(self.plan.fuehre_aus(1).name, "G0")
         self.assertEqual(self.plan.fuehre_aus(10000).name, "G0")
@@ -34,8 +35,8 @@ class test_Trainingsprogramm(TestCase):
         self.assertEqual(self.plan.verarbeite_messwerte(0, 5), [5])
         self.assertEqual(self.plan.verarbeite_messwerte(5000, 5), [5])
         self.assertEqual(self.plan.verarbeite_messwerte(10000, 10), [10])
-        self.assertEqual(self.plan.verarbeite_messwerte(15000, 15), [10,15])
-        self.assertEqual(self.plan.verarbeite_messwerte(20001, 20), [10,15,20])
+        self.assertEqual(self.plan.verarbeite_messwerte(15000, 15), [10, 15])
+        self.assertEqual(self.plan.verarbeite_messwerte(20001, 20), [10, 15, 20])
 
     def test_verarbeite_messwerte_falsche(self):
         # Macht in der Praxis keinen Sinn und sollte von der Programmlogik der Aufrufenden Funktion abgefangen werden
@@ -56,7 +57,7 @@ class test_Trainingsprogramm(TestCase):
         self.plan.verarbeite_messwerte(15000, 15)
         self.assertEqual(self.plan.berechne_distanze_pro_fertige_inhalte(), [10])
         self.plan.verarbeite_messwerte(20001, 21)
-        self.assertEqual(self.plan.berechne_distanze_pro_fertige_inhalte(), [10,5])
+        self.assertEqual(self.plan.berechne_distanze_pro_fertige_inhalte(), [10, 5])
 
     def test_berechne_distanze_aktueller_inhalt(self):
         self.plan.inhalte = self.plan.inhalte * 5
@@ -79,7 +80,7 @@ class test_Trainingsprogramm(TestCase):
         self.plan.inhalte = self.plan.inhalte * 5
         for index, element in enumerate(self.plan.inhalte):
             self.plan.inhalte[index] = copy.copy(element)
-            self.plan.inhalte[index].name = f"G{index}"
+            self.plan.inhalte[index] = replace(self.plan.inhalte[index], name=f"G{index}")
         self.assertEqual(self.plan.fuehre_naechstes_aus(0).name, "G1")
         self.assertEqual(self.plan.fuehre_naechstes_aus(1).name, "G1")
         self.assertEqual(self.plan.fuehre_aus(10000).name, "G0")
@@ -285,4 +286,3 @@ class test_Trainingsprogramm(TestCase):
             self.assertEqual(zeit_pause * to_millis,
                              training.fuehre_aus(int((warmfahrzeit + zeit_intervall) * to_millis + 1 + zeit *
                                                  zeit_set * to_millis)).dauer(), f"Zeit = {zeit}")
-
