@@ -27,6 +27,8 @@ class test_Zonen(TestCase):
         self.assertEqual(1, werte.zeit)
         self.assertEqual(200, werte.dist)
         self.assertEqual(100, werte.herz)
+
+    def test_tacho_werte_plus_minus(self):
         werte = Tachowerte(herz=100, dist=200, zeit=1) - Tachowerte(herz=50, dist=100, zeit=1)
         self.assertEqual(0, werte.zeit)
         self.assertEqual(100, werte.dist)
@@ -40,12 +42,37 @@ class test_Zonen(TestCase):
         self.assertEqual(500, werte.dist)
         self.assertEqual(250, werte.herz)
 
-    def test_update_zone(self):
-        zonen = Zonen().updateZone(0.0, FlexibleZeit.create_from_sekunden(0), 0, 0)
-        self.assertEqual(0, zonen.zonen[0.0].gesamt.dist)
-        self.assertEqual(0, zonen.zonen[0.0].gesamt.herz)
-        self.assertEqual(0, zonen.zonen[0.0].neuer_calc_punkt.dist)
-        self.assertEqual(0, zonen.zonen[0.0].neuer_calc_punkt.herz)
+    def test_update_zone_ein_wert(self):
+        zonen = Zonen().updateZone(0.5, FlexibleZeit.create_from_sekunden(0), 0, 0)
+        self.assertEqual(0, zonen.zonen[0.5].gesamt.zeit)
+        self.assertEqual(0, zonen.zonen[0.5].gesamt.dist)
+        self.assertEqual(0, zonen.zonen[0.5].gesamt.herz)
+        self.assertEqual(0, zonen.zonen[0.5].neuer_calc_punkt.zeit)
+        self.assertEqual(0, zonen.zonen[0.5].neuer_calc_punkt.dist)
+        self.assertEqual(0, zonen.zonen[0.5].neuer_calc_punkt.herz)
+        zonen = zonen.updateZone(0.5, FlexibleZeit.create_from_sekunden(60), 100, 120)
+        self.assertEqual(0, zonen.zonen[0.5].gesamt.zeit)
+        self.assertEqual(0, zonen.zonen[0.5].gesamt.dist)
+        self.assertEqual(0, zonen.zonen[0.5].gesamt.herz)
+        self.assertEqual(0, zonen.zonen[0.5].neuer_calc_punkt.zeit)
+        self.assertEqual(0, zonen.zonen[0.5].neuer_calc_punkt.dist)
+        self.assertEqual(0, zonen.zonen[0.5].neuer_calc_punkt.herz)
+        zonen = zonen.updateZone(0.5, FlexibleZeit.create_from_sekunden(120), 150, 180)
+        self.assertEqual(0, zonen.zonen[0.5].gesamt.zeit)
+        self.assertEqual(0, zonen.zonen[0.5].gesamt.dist)
+        self.assertEqual(0, zonen.zonen[0.5].gesamt.herz)
+        self.assertEqual(0, zonen.zonen[0.5].neuer_calc_punkt.zeit)
+        self.assertEqual(0, zonen.zonen[0.5].neuer_calc_punkt.dist)
+        self.assertEqual(0, zonen.zonen[0.5].neuer_calc_punkt.herz)
+
+    def test_update_zone_loesche_null_werte(self):
+        zonen = Zonen().updateZone(0.6, FlexibleZeit.create_from_sekunden(0), 0, 0)
+        self.assertIn(0.6, zonen.zonen.keys())
+        zonen = zonen.updateZone(0.1, FlexibleZeit.create_from_sekunden(0), 0, 0)
+        self.assertIn(0.1, zonen.zonen.keys())
+        self.assertNotIn(0.6, zonen.zonen.keys())
+
+    def test_update_zone_mehrere_werte(self):
         zonen = Zonen().updateZone(0.1, FlexibleZeit.create_from_sekunden(0), 0, 0)
         self.assertEqual(0, zonen.zonen[0.1].gesamt.dist)
         self.assertEqual(0, zonen.zonen[0.1].gesamt.herz)
@@ -69,6 +96,16 @@ class test_Zonen(TestCase):
         self.assertEqual(50, zonen.zonen[0.2].gesamt.herz)
         self.assertEqual(200, zonen.zonen[0.2].neuer_calc_punkt.dist)
         self.assertEqual(100, zonen.zonen[0.2].neuer_calc_punkt.herz)
+        zonen = zonen.updateZone(0.1, FlexibleZeit.create_from_sekunden(40), 250, 150)
+        self.assertEqual(200, zonen.zonen[0.1].gesamt.dist)
+        self.assertEqual(100, zonen.zonen[0.1].gesamt.herz)
+        self.assertEqual(250, zonen.zonen[0.1].neuer_calc_punkt.dist)
+        self.assertEqual(150, zonen.zonen[0.1].neuer_calc_punkt.herz)
+        self.assertEqual(50, zonen.zonen[0.2].gesamt.dist)
+        self.assertEqual(50, zonen.zonen[0.2].gesamt.herz)
+        self.assertEqual(200, zonen.zonen[0.2].neuer_calc_punkt.dist)
+        self.assertEqual(100, zonen.zonen[0.2].neuer_calc_punkt.herz)
+
 
     def test_calc_werte_pro_zone(self):
         result = self.test_zonen.calcWerteProZone()
@@ -82,6 +119,20 @@ class test_Zonen(TestCase):
         self.assertEqual(1 * 180, result[0.6]['herz'])
         self.assertEqual(50, result[0.6]['cad'])
         self.assertEqual(180, result[0.6]['bpm'])
+        zonen = Zonen().updateZone(0.1, FlexibleZeit.create_from_sekunden(0), 0, 0)
+        result = zonen.calcWerteProZone()
+        self.assertEqual(0, result[0.1]['dist'])
+        self.assertEqual(0, result[0.1]['zeit'])
+        zonen = zonen.updateZone(0.1, FlexibleZeit.create_from_millis(1_000), 1, 0)
+        result = zonen.calcWerteProZone()
+        self.assertEqual(1, result[0.1]['dist'])
+        self.assertEqual(1, result[0.1]['zeit'])
+        zonen = zonen.updateZone(0.1, FlexibleZeit.create_from_sekunden(120), 240, 360)
+        result = zonen.calcWerteProZone()
+        self.assertEqual(240, result[0.1]['dist'])
+        self.assertEqual(120, result[0.1]['zeit'])
+        self.assertEqual(120, result[0.1]['cad'])
+        self.assertEqual(180, result[0.1]['bpm'])
 
     def test_calc_power_pro_zone(self):
         result = self.test_zonen.calcPowerProZone()

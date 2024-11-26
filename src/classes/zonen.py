@@ -52,17 +52,17 @@ class Zonen:
                 result = replace(result,
                                  zonen={key: value for key, value in result.zonen.items() if key != result.pwm})
             result = replace(result, pwm=pwm)
+
         return result
 
     def calcWerteProZone(self) -> dict:
         def calc_tachowerte(pwm: float | int) -> Tachowerte:
             return (self.zonen[pwm].gesamt + self.tachoWerte - self.zonen[pwm].neuer_calc_punkt if pwm == self.pwm
                     else self.zonen[pwm].gesamt)
-
         return {
-            pwm: calc_tachowerte(pwm)._asdict() | {
-                'cad': (60.0 * value.gesamt.dist / value.gesamt.zeit) if value.gesamt.zeit else 0,
-                'bpm': (60.0 * value.gesamt.herz / value.gesamt.zeit) if value.gesamt.zeit else 0
+            pwm: (tachowerte := calc_tachowerte(pwm))._asdict() | {
+                'cad': (60.0 * tachowerte.dist / tachowerte.zeit) if tachowerte.zeit else 0,
+                'bpm': (60.0 * tachowerte.herz / tachowerte.zeit) if tachowerte.zeit else 0
             }
             for pwm, value in self.zonen.items()}  # value = [x, y]
 
