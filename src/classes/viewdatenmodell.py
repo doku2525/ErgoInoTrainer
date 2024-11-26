@@ -62,10 +62,12 @@ class ViewDatenmodell:
             'distanze_am_ziel': status.modell.ergo.calc_distanze_am_ende(status.gestoppte_zeit.als_ms(),
                                                                          status.modell.trainingsprogramm.
                                                                          trainingszeit_dauer_gesamt()),
-            'power_aktuell': status.modell.ergo.calc_power_index(2),
+            # TODO calc_power_index so schreiben, dass Ergometer gleich die richtigen Werte bekommt ohne Argument
+            'power_aktuell': status.modell.ergo.calc_power_index(status.berechne_pwm_wert(), 2),
             'power_gesamt': status.modell.zonen.calcPowerGesamt(),
             'power_durchschnitt': status.modell.zonen.calcPowerDurchschnitt(),
-            'power_watt': status.modell.ergo.calc_power_watt(),
+            # TODO calc_power_watt so schreiben, dass Ergometer gleich die richtigen Werte bekommt ohne Argument
+            'power_watt': status.modell.ergo.calc_power_watt(status.berechne_pwm_wert()),
         })
 
     def berechne_intervall_daten(self, status: ControllerStatus = None) -> ViewDatenmodell:

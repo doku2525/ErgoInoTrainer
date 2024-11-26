@@ -61,9 +61,10 @@ class Ergometer:
                                            FlexibleZeit.create_from_millis(
                                                dauer_gesamt_in_millis - dauer_absolviert_in_millis).als_min()))
 
-    def calc_power_index(self, komma_stellen: int = 2) -> float:
+    def calc_power_index(self, bremse: int, komma_stellen: int = 2) -> float:
         # TODO Kein Test
-        wert = self.lese_cadence() * self.bremse / 100
+        # TODO Urspruenglich self.lese_cadence() * self.bremse / 100, aber mit self.bremse hat nicht funktioniert
+        wert = self.lese_cadence() * bremse / 100
         return float(f"{wert:.{komma_stellen}f}")
 
     # TODO Variablezeit_spanne_millis sieht ueberfluessig aus. Wird die gesamte Funktion ueberhaupt benutzt?
@@ -71,10 +72,11 @@ class Ergometer:
         # TODO Kein Test
         return float(f"{self.calc_power_index():.{komma_stellen}f}")
 
-    def calc_power_watt(self) -> int:
+    def calc_power_watt(self, bremse: int) -> int:
         # TODO Kein Test
+        # TODO Durch calc_power_index() beeinflusst. Sollte ohne Parameter fuktionieren.
         # Einen Powerindex von 34 habe ich als Wert fuer 200W festgelegt. Nur vom Gefuehl her.
-        result = int(200 + ((self.calc_power_index() - 34) * 10))
+        result = int(200 + ((self.calc_power_index(bremse) - 34) * 10))
         if result < 0:
             return 0
         else:

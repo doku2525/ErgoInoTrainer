@@ -101,9 +101,11 @@ class ControllerStatus:
         self.update_pulswerte()
         if not self.modell.uhr.macht_pause():
             # TODO Herz = Gesamtzahl der Schlaege,[ herz += len(ble_heartrate_data.rr_intervall)];
-            self.modell.zonen.updateZone(pwm=self.berechne_pwm_wert() / 100, zeit=self.gestoppte_zeit,
-                                         dist=self.modell.ergo.lese_distance(),
-                                         herz=self.modell.pulsmesser.herzschlaege)
+            self.modell.zonen = self.modell.zonen.updateZone(pwm=self.berechne_pwm_wert() / 100,
+                                                             zeit=self.gestoppte_zeit,
+                                                             dist=self.modell.ergo.lese_distance(),
+                                                             herz=self.modell.pulsmesser.herzschlaege)
+
         neue_daten = daten_modell.update_daten_modell(status=self)
         return self, neue_daten
 
