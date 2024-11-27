@@ -78,7 +78,7 @@ class ApplikationController:
         self.modell.board.sendeUndLeseWerte(0)
         clock = pygame.time.Clock()
         status = ControllerStatus(modell=self.modell)
-        daten_modell = ViewDatenmodell()
+        daten_modell = ViewDatenmodell(log_datei=self.log_file)
 
         # *******
         # Aktualisiere Trainingsplanwerte, Ergometerklasse

@@ -103,13 +103,19 @@ class ApplikationView:
            (40, self.daten.intervall_distanze, False, (10, 96 + 100)),
            (80, self.daten.intervall_zeit, False, (10, 200 + 25)),
            (40, self.daten.intervall_herz, False, (10, 200 + 80)),
-           (32, "Intervall {0}".format(self.daten.intervall_zeit), self.farbe_rot, (screen_breite - 145,
-                                                                                    screen_hoehe - 28)),
-           (32, "Pause {0}".format(""), self.farbe_gruen, (screen_breite - 145, screen_hoehe - 54)),
-           (32, "Sets {0}".format(self.daten.anzahl_sets), self.farbe_rot, (screen_breite - 145,
-                                                                            screen_hoehe - 80)),
-           (32, "Zeit {0}".format(self.daten.trainings_gesamtzeit), self.farbe_schwarz, (screen_breite - 145,
-                                                                                         screen_hoehe - 106))]
+           (22, " Log: {0}".format(str(self.daten.log_datei).split("/")[-1]), self.farbe_schwarz, (screen_breite - 139,
+                                                                                                   screen_hoehe - 15)),
+           (22, " Intervall {0}".format(self.daten.intervall_zeit), self.farbe_rot, (screen_breite - 139,
+                                                                                     screen_hoehe - 30)),
+           (22, " Pause {0}".format(""), self.farbe_gruen, (screen_breite - 139, screen_hoehe - 45)),
+           (22, " Sets {0}".format(self.daten.anzahl_sets), self.farbe_rot, (screen_breite - 139,
+                                                                             screen_hoehe - 60)),
+           (22, " Zeit {0}".format(self.daten.trainings_gesamtzeit), self.farbe_schwarz, (screen_breite - 139,
+                                                                                          screen_hoehe - 75)),
+           (22, " {0}".format(self.daten.trainings_inhalt), self.farbe_schwarz, (screen_breite - 139,
+                                                                                 screen_hoehe - 90)),
+           (28, "{0}".format(self.daten.trainings_name), self.farbe_schwarz, (screen_breite - 141,
+                                                                              screen_hoehe - 110))]
         index = 0
         werte = self.daten.werte_und_power
         if isinstance(werte, int):

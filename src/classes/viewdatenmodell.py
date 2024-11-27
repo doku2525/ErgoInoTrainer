@@ -50,6 +50,7 @@ class ViewDatenmodell:
     intervall_tabelle: list[list[int, int, int, int, (int, int, int)]] = field(default_factory=list)
     device_werte: str = field(default_factory=str)
     intervall_farbe: tuple[int, int, int] = field(default_factory=tuple)
+    log_datei: str = field(default_factory=str)
 
     def berechne_ergometer_daten(self, status: ControllerStatus = None) -> ViewDatenmodell:
         return replace(self, **{
