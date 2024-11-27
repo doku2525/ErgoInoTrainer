@@ -69,7 +69,7 @@ class ViewDatenmodell:
             'power_durchschnitt': status.modell.zonen.calcPowerDurchschnitt(),
             # TODO calc_power_watt so schreiben, dass Ergometer gleich die richtigen Werte bekommt ohne Argument
             'power_watt': status.modell.ergo.calc_power_watt(status.berechne_pwm_wert()),
-        })
+        }) if status is not None else self
 
     def berechne_intervall_daten(self, status: ControllerStatus = None) -> ViewDatenmodell:
         return replace(self, **{
