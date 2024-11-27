@@ -2,6 +2,7 @@ from unittest import TestCase
 from unittest.mock import Mock, patch
 from collections import namedtuple
 import datetime
+from datetime import datetime
 from src.classes.viewdatenmodell import ViewDatenmodell
 
 
@@ -54,12 +55,6 @@ class MockControllerStatus:
         self.modell.zonen.mergeWerteAndPower.return_value = {}
         self.modell.board.device_daten.__dict__ = {}
         self.modell.trainingsprogramm.name = "Tabata"
-
-        # Mockwerte fuer erzeuge_log_string
-        self.trainings_name = "Tabata"
-        self.now = datetime.datetime(2024, 11, 27, 12, 13, 14)
-        # datetime.datetime.now = Mock(return_value=datetime.datetime(2024, 11, 27,
-        #                                                       12, 13, 14 ))
 
 
 class test_ViewDatenmodell(TestCase):
@@ -136,12 +131,36 @@ class test_ViewDatenmodell(TestCase):
         result = obj.update_daten_modell(mock_status)
         self.assertEqual("0:00:10⊗", result.zeit_timer_string)
 
-    def test_erzeuge_log_string(self):
+    @patch('datetime.datetime')
+    def test_erzeuge_log_string(self, mock_datetime):
+        mock_datetime.now.return_value = datetime(2024, 11, 27, 12, 13, 14)
         obj = ViewDatenmodell()
         mock_status = MockControllerStatus()
         result = obj.erzeuge_log_string()
         self.assertEqual(22, len(result.split("\t")))
-        obj = ViewDatenmodell(mock_status)
+        obj = ViewDatenmodell()
+        obj = obj.update_daten_modell(mock_status)
         result = obj.erzeuge_log_string()
         self.assertEqual(22, len(result.split("\t")))
-        # TODO Weitere Tests fuer datetime etc. schreiben
+        self.assertEqual('Tabata', result.split("\t")[0])
+        self.assertEqual('2024-11-27', result.split("\t")[1])
+        self.assertEqual('12:13:14.000', result.split("\t")[2])
+        self.assertEqual('0:03:00', result.split("\t")[3])
+        self.assertEqual('Intervall', result.split("\t")[4])
+        self.assertEqual('10', result.split("\t")[5])
+        self.assertEqual('120', result.split("\t")[6])
+        self.assertEqual('90', result.split("\t")[7])
+        self.assertEqual('0', result.split("\t")[8])
+        self.assertEqual('100', result.split("\t")[9])
+        self.assertEqual('500', result.split("\t")[10])
+        self.assertEqual('20', result.split("\t")[11])
+        self.assertEqual('40', result.split("\t")[12])
+        self.assertEqual('herz_schlaege', result.split("\t")[13])
+        self.assertEqual('calcPulsDurchschnitt', result.split("\t")[14])
+        self.assertEqual('calcHerzschlaegeIntervall', result.split("\t")[15])
+        self.assertEqual('calcPulsIntervall', result.split("\t")[16])
+        self.assertEqual('0.4', result.split("\t")[17])
+        self.assertEqual('herz_freq', result.split("\t")[18])
+        self.assertEqual('batterie_level', result.split("\t")[19])
+        self.assertEqual('{}', result.split("\t")[20])
+        self.assertEqual('herzwert', result.split("\t")[21])
