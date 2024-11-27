@@ -1,34 +1,78 @@
 from unittest import TestCase
 from unittest.mock import Mock, patch
+from collections import namedtuple
+import datetime
 from src.classes.viewdatenmodell import ViewDatenmodell
 
 
 class MockControllerStatus:
-    def __init__(self, pwm_wert: int = 40, distanze_am_ziel: int = 6000):
+    def __init__(self):
         self.modell = Mock()
         self.modell.ergo = Mock()
-        self.berechne_pwm_wert = Mock(return_value=pwm_wert)
+        self.berechne_pwm_wert = Mock(return_value=40)
         self.gestoppte_zeit = Mock()
+        # Mockwerte fuer berechne_ergometer_daten
+        self.werte_nach_trainngsplan = [0, 0, 90]
         self.modell.ergo.lese_cadence.return_value = 120
         self.modell.ergo.calc_cad_durchschnitt.return_value = 100
         self.modell.ergo.lese_distance.return_value = 500
+        self.modell.ergo.calc_distanze_am_ende.return_value = 6000
         self.modell.ergo.calc_power_index.return_value = 36
         self.modell.zonen.calcPowerGesamt.return_value = 172
         self.modell.zonen.calcPowerDurchschnitt.return_value = 34
         self.modell.ergo.calc_power_watt.return_value = 233
-        self.werte_nach_trainngsplan = [0, 0, 90]
-        self.gestoppte_zeit.als_ms.return_value = 5 * 60 * 1000     # 5min
-        self.modell.ergo.calc_distanze_am_ende.return_value = distanze_am_ziel
+
+        # Mockwerte fuer test_berechne_intervall_daten
+        self.modell.trainingsprogramm.berechne_distanze_aktueller_inhalt.return_value = 20
+        self.gestoppte_zeit = Mock()
+        self.gestoppte_zeit.als_ms.return_value = 10000
+        self.modell.trainingsprogramm.trainingszeit_dauer_aktueller_inhalt.return_value = 30000
+        self.modell.trainingsprogramm.berechne_distanze_pro_fertige_inhalte.return_value = [40, 20, 40]
+        # Mock für inhalte
+        # self.modell.trainingsprogramm.inhalte = Mock()
+        MockType = namedtuple('MockedType', ['name', 'dauer'])
+        self.modell.trainingsprogramm.inhalte = [
+            Mock(dauer=Mock(return_value=20000), name='Intervall'),
+            Mock(dauer=Mock(return_value=10000), name='Pause'),
+            Mock(dauer=Mock(return_value=20000), name='Intervall')
+        ]
+        self.modell.trainingsprogramm.fuehre_aus = lambda x: MockType(name='Intervall', dauer=Mock(return_value=20000))
+
+        # Mockwerte fuer berechne_puls_daten
+        self.modell.pulsmesser.herzfrequenz = 140
+        self.modell.pulsmesser.herzschlaege = 500
+        self.modell.pulsmesser.calc_puls_durchschnitt.return_value = 130
+        self.modell.puls_device.batterie_level = 90
+
+        # Mockwerte fuer update_daten_modell
+        self.berechne_zeit_timer = Mock()
+        self.berechneter_zeit_timer = 20000
+        self.gestoppte_zeit.als_s.return_value = 3*60
+        self.pause_nach_aktuellem_inhalt = False
+        self.modell.trainingsprogramm.unendlich = True
+        self.modell.trainingsprogramm.trainingszeit_dauer_gesamt.return_value = 15*60*1000
+        self.modell.zonen.mergeWerteAndPower.return_value = {}
+        self.modell.board.device_daten.__dict__ = {}
+        self.modell.trainingsprogramm.name = "Tabata"
+
+        # Mockwerte fuer erzeuge_log_string
+        self.trainings_name = "Tabata"
+        self.now = datetime.datetime(2024, 11, 27, 12, 13, 14)
+        # datetime.datetime.now = Mock(return_value=datetime.datetime(2024, 11, 27,
+        #                                                       12, 13, 14 ))
+
 
 class test_ViewDatenmodell(TestCase):
 
     def test_view_datenmodell_init(self):
-        assert True
+        obj = ViewDatenmodell()
+        self.assertEqual("", obj.trainings_name)
 
     def test_berechne_ergometer_daten(self):
         obj = ViewDatenmodell()
         mock_status = MockControllerStatus()
         result = obj.berechne_ergometer_daten()
+        self.assertEqual(obj, result)
         result = obj.berechne_ergometer_daten(mock_status)
         self.assertEqual(120, result.cad_frequenz)
         self.assertEqual(100, result.cad_durchschnitt)
@@ -41,3 +85,63 @@ class test_ViewDatenmodell(TestCase):
         self.assertEqual(172, result.power_gesamt)
         self.assertEqual(34, result.power_durchschnitt)
         self.assertEqual(233, result.power_watt)
+
+    def test_berechne_intervall_daten(self):
+        obj = ViewDatenmodell()
+        mock_status = MockControllerStatus()
+        result = obj.berechne_intervall_daten()
+        self.assertEqual(obj, result)
+        result = obj.berechne_intervall_daten(mock_status)
+        self.assertEqual(20, result.intervall_distanze)
+        self.assertEqual(40, result.intervall_cad)
+        self.assertEqual(  # TODO Beim mocken wird der Test auf den Namen 'Intervall' nicht erkannt. Deshalb allesgruen
+            [
+                [40, 120, 0, 0, (0, 255, 0)],
+                [20, 120, 0, 0, (0, 255, 0)],
+                [40, 120, 0, 0, (0, 255, 0)]],
+            result.intervall_tabelle)
+        self.assertEqual(0, result.anzahl_sets)  # TODO Gleiches Problem elem.name wird nicht erkannt
+        self.assertEqual(0, result.anzahl_fertige_sets)  # TODO Gleiches Problem elem.name wird nicht erkannt
+        self.assertEqual((255, 0, 0), result.intervall_farbe)
+
+    def test_berechne_puls_daten(self):
+        obj = ViewDatenmodell()
+        mock_status = MockControllerStatus()
+        result = obj.berechne_puls_daten()
+        self.assertEqual(obj, result)
+        result = obj.berechne_puls_daten(mock_status)
+        self.assertEqual(140, result.herz_frequenz)
+        self.assertEqual(500, result.herz_gesamt)
+        self.assertEqual(130, result.herz_durchschnitt)
+        self.assertEqual(90, result.herz_batterielevel)
+
+    def test_update_daten_modell(self):
+        obj = ViewDatenmodell()
+        mock_status = MockControllerStatus()
+        result = obj.update_daten_modell()
+        self.assertEqual(obj, result)
+        result = obj.update_daten_modell(mock_status)
+        self.assertEqual("0:03:00", result.zeit_gesamt)
+        self.assertEqual(10, result.zeit_timer)
+        self.assertEqual("0:00:10", result.zeit_timer_string)
+        self.assertEqual({}, result.werte_und_power)
+        self.assertEqual("{}", result.device_werte)
+        self.assertEqual("Tabata", result.trainings_name)
+        self.assertEqual("Intervall", result.trainings_inhalt)
+        self.assertEqual("0:15:00 ∞", result.trainings_gesamtzeit)
+        mock_status.modell.trainingsprogramm.unendlich = False
+        result = obj.update_daten_modell(mock_status)
+        self.assertEqual("0:15:00 ⊗", result.trainings_gesamtzeit)
+        mock_status.pause_nach_aktuellem_inhalt = True
+        result = obj.update_daten_modell(mock_status)
+        self.assertEqual("0:00:10⊗", result.zeit_timer_string)
+
+    def test_erzeuge_log_string(self):
+        obj = ViewDatenmodell()
+        mock_status = MockControllerStatus()
+        result = obj.erzeuge_log_string()
+        self.assertEqual(22, len(result.split("\t")))
+        obj = ViewDatenmodell(mock_status)
+        result = obj.erzeuge_log_string()
+        self.assertEqual(22, len(result.split("\t")))
+        # TODO Weitere Tests fuer datetime etc. schreiben

@@ -95,14 +95,14 @@ class ViewDatenmodell:
                                  in zip(status.modell.trainingsprogramm.berechne_distanze_pro_fertige_inhalte(),
                                         status.modell.trainingsprogramm.inhalte)]))),
             'intervall_farbe': farbe_rot if status.modell.trainingsprogramm.fuehre_aus(
-                status.gestoppte_zeit.als_ms()).name == 'Intervall' else farbe_gruen})
+                status.gestoppte_zeit.als_ms()).name == 'Intervall' else farbe_gruen}) if status is not None else self
 
     def berechne_puls_daten(self, status: ControllerStatus = None) -> ViewDatenmodell:
         return replace(self, **{
             'herz_frequenz': status.modell.pulsmesser.herzfrequenz,
             'herz_gesamt': status.modell.pulsmesser.herzschlaege,
             'herz_durchschnitt': status.modell.pulsmesser.calc_puls_durchschnitt(status.modell.akuelle_zeit().als_ms()),
-            'herz_batterielevel': status.modell.puls_device.batterie_level})
+            'herz_batterielevel': status.modell.puls_device.batterie_level}) if status is not None else self
 
     def update_daten_modell(self, status: ControllerStatus = None) -> ViewDatenmodell:
         def berechne_zeit_timer() -> int:
@@ -117,7 +117,7 @@ class ViewDatenmodell:
             return int(berechnete_zeit / 1000) + 1
 
         if status is None:
-            return daten_modell
+            return self
 
         berechneter_zeit_timer = berechne_zeit_timer()
         result = (self.
@@ -136,7 +136,7 @@ class ViewDatenmodell:
             'trainings_inhalt': status.modell.trainingsprogramm.fuehre_aus(status.gestoppte_zeit.als_ms()).name,
             'trainings_gesamtzeit': (str(
                 datetime.timedelta(milliseconds=status.modell.trainingsprogramm.trainingszeit_dauer_gesamt())) +
-                (' ∞' if status.modell.trainingsprogramm.unendlich else ' \u2297'))})
+                (' ∞' if status.modell.trainingsprogramm.unendlich else ' \u2297'))}) if status is not None else self
 
     def erzeuge_log_string(self, join_string: str = "\t") -> str:
         now = datetime.datetime.now()
