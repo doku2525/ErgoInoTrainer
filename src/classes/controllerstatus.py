@@ -63,7 +63,7 @@ class ControllerStatus:
     def update_ergometer(self) -> None:
         self.modell.ergo = (self.modell.ergo.
                             setBremse(self.werte_nach_trainngsplan[1]).
-                            update_device_werte(self.modell.board.device_daten))
+                            update_device_werte(self.modell.board.device_daten, pause=self.modell.uhr.macht_pause()))
 
     def update_musik(self) -> None:
         # TODO Evtl. Musik mit Pausenfunktion syncronisieren

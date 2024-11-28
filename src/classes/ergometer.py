@@ -6,14 +6,27 @@ if TYPE_CHECKING:
     from src.classes.devicedatenmodell import DeviceDatenModell
 
 
+def device_werte_distanze(device_werte: DeviceDatenModell | None) -> int:
+    """Hilfsfunktion um None abzufangen am Start"""
+    return device_werte.distanze if device_werte else 0
+
+
+def device_werte_cad(device_werte: DeviceDatenModell | None) -> int:
+    """Hilfsfunktion um None abzufangen am Start"""
+    return device_werte.cad if device_werte else 0
+
+
 @dataclass(frozen=True)
 class Ergometer:
     bremse: int = 0
     distanze: int = 0
     max_anzahl_werte: int = 255
-    device_werte: Optional[AbstractClass] = None
+    device_werte: DeviceDatenModell | None = None
     cad_zeitenliste: list = field(default_factory=list)
     korrekturwerte_bremse: dict = field(default_factory=dict)
+    im_pausen_modus: bool = field(default=False)
+    distanze_waehrend_pause: int = 0
+    cad_zeitenliste_waehrend_pause: list = field(default_factory=list)
 
     def setBremse(self, neuer_wert) -> Ergometer:
         return replace(self, bremse=min(max(neuer_wert, 0), 100))     # 0 <= x <= 100
@@ -44,16 +57,15 @@ class Ergometer:
         return self.korrigiere_bremswert(wert=self.bremse + 5 if name is None else 5, name=name)
 
     def lese_distance(self) -> int:
-        return self.distanze * self.max_anzahl_werte + int(self.device_werte.distanze)
+        return (self.distanze * self.max_anzahl_werte
+                + device_werte_distanze(self.device_werte)
+                - self.distanze_waehrend_pause)
 
     def lese_cadence(self) -> int:
-        return int(self.device_werte.cad)
+        return device_werte_cad(self.device_werte)
 
     def calc_cad_durchschnitt(self, zeit_spanne_millis: int, komma_stellen: int = 0) -> float:
-        if zeit_spanne_millis == 0:
-            wert = 0.000
-        else:
-            wert = self.lese_distance() * 60.0 * 1000 / zeit_spanne_millis
+        wert = 0.000 if zeit_spanne_millis == 0 else self.lese_distance() * 60.0 * 1000 / zeit_spanne_millis
         return float(f"{wert:.{komma_stellen}f}")
 
     def calc_distanze_am_ende(self, dauer_absolviert_in_millis: int = 0, dauer_gesamt_in_millis: int = 0) -> int:
@@ -85,17 +97,36 @@ class Ergometer:
     def verarbeite_device_daten(self, neue_device_daten: DeviceDatenModell):
         # TODO Noch nicht vollstaendig implementiert
         # TODO Kein Test
+        # TODO Funktion wird bisher nicht verwendet
         if hasattr(neue_device_daten, 'runtime_pro_tritte'):
             # TODO verarbeite das Datenfeld mit runtime_pro_tritte und fuege Elemente der Liste hinzu.
             self.update_cad_zeitenliste(zeiten=neue_device_daten.runtime_pro_tritte)
         self.update_device_werte(neue_device_daten=neue_device_daten)
 
-    def update_device_werte(self, neue_device_daten: DeviceDatenModell) -> Ergometer:
-        if self.device_werte and (int(neue_device_daten.distanze) < int(self.device_werte.distanze)):
-            return replace(self, distanze=self.distanze + 1, device_werte=neue_device_daten)
-        return replace(self, device_werte=neue_device_daten)
+    def update_device_werte(self, neue_device_daten: DeviceDatenModell, pause: bool = False) -> Ergometer:
+        """Berechne Distanze und fuehre Logik fuer Pausenbehandlung aus. Rekursiv"""
+        match (pause,
+               self.im_pausen_modus,
+               self.device_werte,
+               int(neue_device_daten.distanze) < device_werte_distanze(self.device_werte)):
+            case (True, _, _, _):       # Pause: Daten ignorieren, nur im_pausen_modus veraendern
+                return replace(self, im_pausen_modus=pause)
+            case (False, True, _, _):   # Pause wurde beendet, berechne Distanz waehrend Pause und pausen_modus = False
+                return (replace(self,
+                                im_pausen_modus=pause,
+                                distanze_waehrend_pause=(self.distanze_waehrend_pause
+                                                         + (neue_device_daten.distanze
+                                                            - device_werte_distanze(self.device_werte))
+                                                         % self.max_anzahl_werte)).
+                        update_device_werte(neue_device_daten))     # Dann fuehre Funktion auf das neue Objekt aus.
+            case (False, False, _, True):   # distanz in device_daten ist uebergelaufen, erhoehe distanz-Zahler
+                return replace(self, distanze=self.distanze + 1, device_werte=neue_device_daten)
+            case _:                         # Ersetze nur die alten Device_werte durch die Neuen
+                return replace(self, device_werte=neue_device_daten)
 
     def update_cad_zeitenliste(self, zeiten: tuple[int, int, int, int]) -> Ergometer:
+        # TODO Pausen-Funktionalitaet hinzufuegen
+        # TODO Funktion wird bisher nicht aufgerufen
         set_mit_zeiten_ohne_nullen = set(zeiten) - {0}
         if neue_zeiten := sorted(set_mit_zeiten_ohne_nullen - set(self.cad_zeitenliste[-4:])):
             return replace(self, cad_zeitenliste=self.cad_zeitenliste[:] + neue_zeiten)

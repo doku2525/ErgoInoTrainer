@@ -5,6 +5,39 @@ from src.classes.devicedatenmodell import ArduinoDatenModell
 
 
 class test_Ergometer(TestCase):
+
+    def test_distanze_waehrend_pause_variable(self):
+        ergo = Ergometer()
+        self.assertEqual(0, ergo.distanze_waehrend_pause)
+        ergo = Ergometer().update_device_werte(ArduinoDatenModell(distanze=0), pause=True)
+        self.assertEqual(0,
+                         ergo.update_device_werte(ArduinoDatenModell(distanze=0), pause=True).distanze_waehrend_pause)
+        self.assertEqual(0,
+                         ergo.update_device_werte(ArduinoDatenModell(distanze=10), pause=True).distanze_waehrend_pause)
+        self.assertEqual(10,
+                         ergo.update_device_werte(ArduinoDatenModell(distanze=10), pause=True).
+                         update_device_werte(ArduinoDatenModell(distanze=10), pause=False).distanze_waehrend_pause)
+        self.assertEqual(25,
+                         ergo.update_device_werte(ArduinoDatenModell(distanze=10), pause=True).
+                         update_device_werte(ArduinoDatenModell(distanze=10), pause=False).
+                         update_device_werte(ArduinoDatenModell(distanze=20), pause=False).
+                         update_device_werte(ArduinoDatenModell(distanze=20), pause=True).
+                         update_device_werte(ArduinoDatenModell(distanze=35), pause=True).
+                         update_device_werte(ArduinoDatenModell(distanze=35), pause=False).
+                         distanze_waehrend_pause)
+        self.assertEqual(30,
+                         ergo.update_device_werte(ArduinoDatenModell(distanze=10), pause=True).
+                         update_device_werte(ArduinoDatenModell(distanze=10), pause=False).
+                         update_device_werte(ArduinoDatenModell(distanze=20), pause=False).
+                         update_device_werte(ArduinoDatenModell(distanze=20), pause=True).
+                         update_device_werte(ArduinoDatenModell(distanze=35), pause=True).
+                         update_device_werte(ArduinoDatenModell(distanze=35), pause=False).
+                         update_device_werte(ArduinoDatenModell(distanze=254), pause=False).
+                         update_device_werte(ArduinoDatenModell(distanze=254), pause=True).
+                         update_device_werte(ArduinoDatenModell(distanze=254), pause=True).
+                         update_device_werte(ArduinoDatenModell(distanze=4), pause=False).
+                         distanze_waehrend_pause)
+
     def test_set_bremse(self):
         ergo = Ergometer()
         self.assertEqual(ergo.bremse, 0)
@@ -61,6 +94,7 @@ class test_Ergometer(TestCase):
 
     def test_lese_distance(self):
         ergo = Ergometer()
+        self.assertEqual(ergo.lese_distance(), 0)
         ArduinoDatenModell(distanze=0)
         ergo = ergo.update_device_werte(ArduinoDatenModell(distanze=0))
         self.assertEqual(ergo.lese_distance(), 0)
@@ -86,8 +120,54 @@ class test_Ergometer(TestCase):
         ergo = ergo.update_device_werte(ArduinoDatenModell(distanze=251))
         self.assertEqual(ergo.lese_distance(), 4*255 + 251)
 
+    def test_lese_distance_waehrend_pause(self):
+        ergo = Ergometer()
+        self.assertEqual(0, ergo.lese_distance())
+        ergo = Ergometer().update_device_werte(ArduinoDatenModell(distanze=0), pause=True)
+        self.assertEqual(0,
+                         ergo.update_device_werte(ArduinoDatenModell(distanze=0), pause=True).lese_distance())
+        self.assertEqual(0,
+                         ergo.update_device_werte(ArduinoDatenModell(distanze=10), pause=True).lese_distance())
+        self.assertEqual(0,
+                         ergo.update_device_werte(ArduinoDatenModell(distanze=10), pause=True).
+                         update_device_werte(ArduinoDatenModell(distanze=10), pause=False).lese_distance())
+        self.assertEqual(10,
+                         ergo.update_device_werte(ArduinoDatenModell(distanze=10), pause=True).
+                         update_device_werte(ArduinoDatenModell(distanze=10), pause=False).
+                         update_device_werte(ArduinoDatenModell(distanze=20), pause=False).
+                         update_device_werte(ArduinoDatenModell(distanze=20), pause=True).
+                         update_device_werte(ArduinoDatenModell(distanze=35), pause=True).
+                         update_device_werte(ArduinoDatenModell(distanze=35), pause=False).
+                         lese_distance())
+        self.assertEqual(10 + 254 - 35,
+                         ergo.update_device_werte(ArduinoDatenModell(distanze=10), pause=True).
+                         update_device_werte(ArduinoDatenModell(distanze=10), pause=False).
+                         update_device_werte(ArduinoDatenModell(distanze=20), pause=False).
+                         update_device_werte(ArduinoDatenModell(distanze=20), pause=True).
+                         update_device_werte(ArduinoDatenModell(distanze=35), pause=True).
+                         update_device_werte(ArduinoDatenModell(distanze=35), pause=False).
+                         update_device_werte(ArduinoDatenModell(distanze=254), pause=False).
+                         update_device_werte(ArduinoDatenModell(distanze=254), pause=True).
+                         update_device_werte(ArduinoDatenModell(distanze=254), pause=True).
+                         update_device_werte(ArduinoDatenModell(distanze=4), pause=False).
+                         lese_distance())
+        self.assertEqual(10 + 215 + 5,
+                         ergo.update_device_werte(ArduinoDatenModell(distanze=10), pause=True).
+                         update_device_werte(ArduinoDatenModell(distanze=10), pause=False).
+                         update_device_werte(ArduinoDatenModell(distanze=20), pause=False).
+                         update_device_werte(ArduinoDatenModell(distanze=20), pause=True).
+                         update_device_werte(ArduinoDatenModell(distanze=35), pause=True).
+                         update_device_werte(ArduinoDatenModell(distanze=35), pause=False).
+                         update_device_werte(ArduinoDatenModell(distanze=250), pause=False).
+                         update_device_werte(ArduinoDatenModell(distanze=250), pause=True).
+                         update_device_werte(ArduinoDatenModell(distanze=254), pause=True).
+                         update_device_werte(ArduinoDatenModell(distanze=254), pause=False).
+                         update_device_werte(ArduinoDatenModell(distanze=4), pause=False).
+                         lese_distance())
+
     def test_lese_cadence(self):
         ergo = Ergometer()
+        self.assertEqual(ergo.lese_cadence(), 0)
         ergo = ergo.update_device_werte(ArduinoDatenModell(distanze=1, cad=0))
         self.assertEqual(ergo.lese_cadence(), 0)
         ergo = ergo.update_device_werte(ArduinoDatenModell(distanze=1, cad=1))
@@ -97,6 +177,7 @@ class test_Ergometer(TestCase):
 
     def test_calc_cad_durchschnitt(self):
         ergo = Ergometer()
+        self.assertEqual(ergo.calc_cad_durchschnitt(0), 0)
         ergo = ergo.update_device_werte(ArduinoDatenModell(distanze=0))
         self.assertEqual(ergo.calc_cad_durchschnitt(0), 0)
         self.assertEqual(ergo.calc_cad_durchschnitt(1000), 0)
@@ -123,6 +204,7 @@ class test_Ergometer(TestCase):
 
     def test_calc_distanze_am_ende(self):
         ergo = Ergometer()
+        self.assertEqual(0, ergo.calc_distanze_am_ende(0, 10000))
         ergo = ergo.update_device_werte(ArduinoDatenModell(distanze=1, cad=0))
         self.assertEqual(1, ergo.calc_distanze_am_ende(0, 10000))
         ergo = Ergometer()
@@ -144,6 +226,37 @@ class test_Ergometer(TestCase):
                          update_device_werte(ArduinoDatenModell(distanze=253)).
                          update_device_werte(ArduinoDatenModell(distanze=252)).
                          update_device_werte(ArduinoDatenModell(distanze=1)).distanze, 4)
+
+    def test_update_device_werte_bei_pause(self):
+        ergo = Ergometer()
+        self.assertEqual(ergo.update_device_werte(ArduinoDatenModell(distanze=1), pause=True).distanze, 0)
+        self.assertEqual(ergo.update_device_werte(ArduinoDatenModell(distanze=1), pause=True).im_pausen_modus, True)
+        self.assertIsNone(ergo.update_device_werte(ArduinoDatenModell(distanze=1), pause=True).device_werte)
+        self.assertEqual(ergo.update_device_werte(ArduinoDatenModell(distanze=255), pause=True).distanze, 0)
+        self.assertIsNone(ergo.update_device_werte(ArduinoDatenModell(distanze=1), pause=True).device_werte)
+        self.assertEqual(ergo.update_device_werte(ArduinoDatenModell(distanze=255), pause=True).
+                         update_device_werte(ArduinoDatenModell(distanze=1), pause=True).distanze, 0)
+        self.assertEqual(ergo.update_device_werte(ArduinoDatenModell(distanze=255), pause=True).
+                         update_device_werte(ArduinoDatenModell(distanze=254), pause=True).
+                         update_device_werte(ArduinoDatenModell(distanze=253), pause=True).
+                         update_device_werte(ArduinoDatenModell(distanze=252), pause=True).
+                         update_device_werte(ArduinoDatenModell(distanze=1), pause=True).distanze, 0)
+        self.assertIsNone(ergo.update_device_werte(ArduinoDatenModell(distanze=1), pause=True).device_werte)
+        self.assertEqual(ergo.update_device_werte(ArduinoDatenModell(distanze=1)).
+                         update_device_werte(ArduinoDatenModell(distanze=254), pause=True).device_werte.distanze,
+                         1)
+        self.assertEqual(ergo.update_device_werte(ArduinoDatenModell(distanze=1)).
+                         update_device_werte(ArduinoDatenModell(distanze=254), pause=True).distanze_waehrend_pause,
+                         0)
+        self.assertEqual(ergo.update_device_werte(ArduinoDatenModell(distanze=1)).
+                         update_device_werte(ArduinoDatenModell(distanze=254), pause=True).
+                         update_device_werte(ArduinoDatenModell(distanze=254)).distanze_waehrend_pause,
+                         253)
+        self.assertEqual(ergo.update_device_werte(ArduinoDatenModell(distanze=254)).
+                         update_device_werte(ArduinoDatenModell(distanze=5), pause=True).
+                         update_device_werte(ArduinoDatenModell(distanze=5)).distanze_waehrend_pause,
+                         6)
+
 
     def test_update_cad_zeitenliste(self):
         ergo = Ergometer()
