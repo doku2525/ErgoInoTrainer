@@ -158,6 +158,18 @@ class test_Trainingsprogramm(TestCase):
         self.assertEqual(self.plan.finde_index_des_aktuellen_inhalts(45000), 4)
         self.assertEqual(self.plan.finde_index_des_aktuellen_inhalts(50001), 4)
 
+    def test_ist_letzter_inhalt(self):
+        self.plan.inhalte = self.plan.inhalte * 5
+        self.assertFalse(self.plan.ist_letzter_inhalt(10000))
+        self.assertFalse(self.plan.ist_letzter_inhalt(10001))
+        self.assertFalse(self.plan.ist_letzter_inhalt(15001))
+        self.assertFalse(self.plan.ist_letzter_inhalt(20000))
+        self.assertFalse(self.plan.ist_letzter_inhalt(20001))
+        self.assertFalse(self.plan.ist_letzter_inhalt(40000))
+        self.assertTrue(self.plan.ist_letzter_inhalt(40001))
+        self.assertTrue(self.plan.ist_letzter_inhalt(45000))
+        self.assertTrue(self.plan.ist_letzter_inhalt(50001))
+
     def test_erzeuge_trainingsplan_G1(self):
         training = erzeuge_trainingsprogramm_G1(90, 35, 100)
         self.assertEqual(18, len(training.inhalte))

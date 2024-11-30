@@ -8,6 +8,14 @@ if TYPE_CHECKING:
     from src.classes.applikationmodel import ApplikationModell
 
 
+"""In einigen Funktionen [pause_am_ende_des_aktuellen_inhalts()] wird ein Zeitwert in Millisekunden benutzt,
+innerhalb dem eine Schleife mindestens einmal durchgelaufen sein sollte. Falls es zu Timingproblemen bei aelteren
+Computern kommen sollte, kann ein goressere Wert fuer ZEIT_DELTA benutzt werden. Eine Schleife sind 1000ms, deshalb
+sollte der Wert nicht groesser als 500ms sein.
+Falls 500 nicht ausreicht, sollten einige Funktionen in der Schleife deaktiviert werden."""
+ZEIT_DELTA = 100
+
+
 class ControllerStatus:
     def __init__(self, modell: ApplikationModell, schleifen_zeit_in_ms: int = 1000,
                  pause_nach_aktuellem_inhalt: bool = False):
@@ -53,12 +61,17 @@ class ControllerStatus:
                 not self.modell.trainingsprogramm.unendlich)
 
     def pause_am_ende_des_aktuellen_inhalts(self) -> bool:
-        # TODO Loesche auskommentierten Code
-        # berechnete_zeit = (self.modell.trainingsprogramm.
-        #                    trainingszeit_dauer_aktueller_inhalt(self.gestoppte_zeit.als_ms()))
+
+        self.pause_nach_aktuellem_inhalt = (self.pause_nach_aktuellem_inhalt |
+                                            (not self.modell.trainingsprogramm.unendlich and
+                                             self.modell.trainingsprogramm.ist_letzter_inhalt(
+                                                 self.gestoppte_zeit.als_ms()) and
+                                             self.modell.trainingsprogramm.trainingszeit_dauer_aktueller_inhalt(
+                                                 self.gestoppte_zeit.als_ms()) > ZEIT_DELTA))
         return (self.es_ist_zeit_fuer_update() and
                 self.pause_nach_aktuellem_inhalt and
-                self.modell.trainingsprogramm.trainingszeit_dauer_aktueller_inhalt(self.gestoppte_zeit.als_ms()) < 100)
+                self.modell.trainingsprogramm.trainingszeit_dauer_aktueller_inhalt(
+                    self.gestoppte_zeit.als_ms()) < ZEIT_DELTA)
 
     def update_ergometer(self) -> None:
         self.modell.ergo = (self.modell.ergo.

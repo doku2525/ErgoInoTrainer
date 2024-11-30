@@ -77,6 +77,8 @@ class Trainingsprogramm:
 
         return suche_rekursiv(tuple(self.inhalte), zeit_in_ms)
 
+    def ist_letzter_inhalt(self, zeit_in_ms: int) -> bool:
+        return self.finde_index_des_aktuellen_inhalts(zeit_in_ms) == (len(self.inhalte) - 1)
 
 def erzeuge_trainingsprogramm_G1(dauer_in_minuten: int, pwm: int, cad: int,
                                  block_groesse: int = 5) -> Trainingsprogramm:
