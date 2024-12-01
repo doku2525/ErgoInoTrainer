@@ -109,15 +109,29 @@ class test_ControllerStatus(TestCase):
 
     @patch('src.classes.stoppuhr.FlexibleZeit.als_ms')
     @patch('src.classes.controllerstatus.ControllerStatus.es_ist_zeit_fuer_update')
-    def test_pause_am_ende_des_aktuellen_inhalts(self, mock_update_zeit, mock_als_ms):
-        # Wenn status.pause_nach_aktuellem_inhalt True sollte immer True als Ergebnis kommen
-        mock_als_ms.return_value = 1000
+    @patch('src.classes.controllerstatus.ControllerStatus.neuer_wert_pause_nach_aktuellem_inhalt')
+    def test_pause_am_ende_des_aktuellen_inhalts(self, mock_neuer_wert, mock_update_zeit, mock_als_ms):
+        # True-Bedingungen
+        mock_update_zeit.return_value = True
+        mock_als_ms.return_value = 0
+        mock_neuer_wert.return_value = True
+        self.assertTrue(self.status.pause_am_ende_des_aktuellen_inhalts())
+        mock_als_ms.return_value = ZEIT_DELTA - 1
+        self.assertTrue(self.status.pause_am_ende_des_aktuellen_inhalts())
+
+        # False-Bedingungen
+        mock_update_zeit.return_value = True
+        mock_als_ms.return_value = 0
+        mock_neuer_wert.return_value = False
         self.assertFalse(self.status.pause_am_ende_des_aktuellen_inhalts())
-        print(f"\n{self.status.pause_nach_aktuellem_inhalt=}")
-        self.status.pause_nach_aktuellem_inhalt = True
-        print(f"\n{self.status.pause_nach_aktuellem_inhalt=}")
+        mock_als_ms.return_value = ZEIT_DELTA
+        mock_neuer_wert.return_value = True
         self.assertFalse(self.status.pause_am_ende_des_aktuellen_inhalts())
-        print(f"\n{self.status.pause_nach_aktuellem_inhalt=}")
+        mock_update_zeit.return_value = False
+        mock_als_ms.return_value = 0
+        mock_neuer_wert.return_value = True
+        self.assertFalse(self.status.pause_am_ende_des_aktuellen_inhalts())
+
 
     @patch('src.classes.stoppuhr.FlexibleZeit.als_ms')
     def test_neuer_wert_pause_nach_aktuellem_inhalt(self, mock_als_ms):
