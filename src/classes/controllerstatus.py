@@ -1,17 +1,17 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 import pygame
-import src.modules.audiomodul as audiomodul
-from src.classes.stoppuhr import FlexibleZeit
 from src.classes.bledevice import PulswerteDatenObjekt, BLEHeartRateData
+from src.classes.stoppuhr import FlexibleZeit
+import src.modules.audiomodul as audiomodul
 if TYPE_CHECKING:
     from src.classes.applikationmodel import ApplikationModell
 
 
-"""In einigen Funktionen [pause_am_ende_des_aktuellen_inhalts()] wird ein Zeitwert in Millisekunden benutzt,
-innerhalb dem eine Schleife mindestens einmal durchgelaufen sein sollte. Falls es zu Timingproblemen bei aelteren
-Computern kommen sollte, kann ein goressere Wert fuer ZEIT_DELTA benutzt werden. Eine Schleife sind 1000ms, deshalb
-sollte der Wert nicht groesser als 500ms sein.
+"""In einigen Funktionen [pause_am_ende_des_aktuellen_inhalts(), neuer_wert_pause_nach_aktuellem_inhalt()]
+wird ein Zeitwert in Millisekunden benutzt, innerhalb dem eine Schleife mindestens einmal durchgelaufen sein sollte.
+Falls es zu Timingproblemen bei aelteren Computern kommen sollte, kann ein goressere Wert fuer ZEIT_DELTA benutzt
+werden. Eine Schleife sind 1000ms, deshalb sollte der Wert nicht groesser als 500ms sein.
 Falls 500 nicht ausreicht, sollten einige Funktionen in der Schleife deaktiviert werden."""
 ZEIT_DELTA = 100
 
@@ -61,17 +61,24 @@ class ControllerStatus:
                 not self.modell.trainingsprogramm.unendlich)
 
     def pause_am_ende_des_aktuellen_inhalts(self) -> bool:
-
-        self.pause_nach_aktuellem_inhalt = (self.pause_nach_aktuellem_inhalt |
-                                            (not self.modell.trainingsprogramm.unendlich and
-                                             self.modell.trainingsprogramm.ist_letzter_inhalt(
-                                                 self.gestoppte_zeit.als_ms()) and
-                                             self.modell.trainingsprogramm.trainingszeit_dauer_aktueller_inhalt(
-                                                 self.gestoppte_zeit.als_ms()) > ZEIT_DELTA))
+        """Die Funktion prueft, ob in den Pausenmodus gewechselt werden soll.
+            True bedeutet, der Inhalt ist beendet und es wird das Kommando Pause geschickt.
+            !!! Die Funktion ist kein Test, ob am Ende des Inhalts in den Pausenmodus gewechselt wird."""
+        self.pause_nach_aktuellem_inhalt = self.neuer_wert_pause_nach_aktuellem_inhalt()
         return (self.es_ist_zeit_fuer_update() and
                 self.pause_nach_aktuellem_inhalt and
                 self.modell.trainingsprogramm.trainingszeit_dauer_aktueller_inhalt(
                     self.gestoppte_zeit.als_ms()) < ZEIT_DELTA)
+
+    def neuer_wert_pause_nach_aktuellem_inhalt(self) -> bool:
+        """Liefer den neuen Wert fuer das Attribut.
+            ZEIT_DELTA steht in Verbindung mit der Funktion pause_am_ende_des_aktuellen_inhalts(), weil sonst das
+            Programm in den Pausenmodus springt, wenn das Attribut innerhalb ZEIT_DELTA veraendert wird"""
+        return (self.pause_nach_aktuellem_inhalt |
+                (not self.modell.trainingsprogramm.unendlich and
+                 self.modell.trainingsprogramm.ist_letzter_inhalt(self.gestoppte_zeit.als_ms()) and
+                 self.modell.trainingsprogramm.trainingszeit_dauer_aktueller_inhalt(
+                     self.gestoppte_zeit.als_ms()) > ZEIT_DELTA))
 
     def update_ergometer(self) -> None:
         self.modell.ergo = (self.modell.ergo.
