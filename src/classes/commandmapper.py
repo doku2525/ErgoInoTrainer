@@ -31,6 +31,14 @@ def bremseMinus(status: ControllerStatus) -> Ergometer:
     return status.modell.ergo.bremseMinus(name=status.werte_nach_trainngsplan[0])
 
 
+def resetBremswertkorrektur(status: ControllerStatus) -> Ergometer:
+    return status.modell.ergo.loesche_bremswertkorrektur(name=status.werte_nach_trainngsplan[0])
+
+
+def resetAlleBremswertkorrekturen(status: ControllerStatus) -> Ergometer:
+    return status.modell.ergo.loesche_bremswertkorrektur(name=None)
+
+
 def pause_mit_zeit(status: ControllerStatus) -> None:
     if status.modell.uhr.macht_pause():
         status.modell.uhr = status.modell.uhr.start(status.modell.millis_jetzt())
@@ -60,6 +68,7 @@ class CommandMapper:
 # NumLock => KMOD_NUM = 4096    als Modifier
 # WICHTIG !!! ctrl+alt+key wird nicht erkannt.
 # Aber ctrl+shift, alt+shift, NumLock+Alt+Shift+key etc wird erkannt.
+"""kwargs={'status': True}: Die Funktion benutzt das status-Argument in command_mapper() siehe unten."""
 COMMANDS = [
     CommandMapper(command_string="QUIT", key_bindings=[pygame.K_q],
                   flask_route=None, funktion=beende_programm, kwargs={'status': True}),
@@ -71,6 +80,11 @@ COMMANDS = [
                   flask_route='pwm_minusminus', funktion=bremseMinusMinus, kwargs={'status': True}),
     CommandMapper(command_string="PWM-", key_bindings=[pygame.K_LEFT, pygame.K_KP4],
                   flask_route='pwm_minus', funktion=bremseMinus, kwargs={'status': True}),
+    CommandMapper(command_string="RESET_BREMSKORREKTUR", key_bindings=[pygame.K_KP5, pygame.K_BACKSPACE],
+                  flask_route=None, funktion=resetBremswertkorrektur, kwargs={'status': True}),
+    CommandMapper(command_string="RESET_BREMSKORREKTUR_ALL", key_bindings=[(pygame.KMOD_RSHIFT, pygame.K_BACKSPACE),
+                                                                           (pygame.KMOD_RSHIFT, pygame.K_KP5)],
+                  flask_route=None, funktion=resetAlleBremswertkorrekturen, kwargs={'status': True}),
     CommandMapper(command_string="PAUSE", key_bindings=[pygame.K_p, pygame.K_SPACE, pygame.K_KP_ENTER],
                   flask_route='pause', funktion=pause_mit_zeit, kwargs={'status': True}),
     CommandMapper(command_string="MUSIK_MUTE", key_bindings=[pygame.K_m, pygame.K_KP_PERIOD],

@@ -299,6 +299,20 @@ class test_Ergometer(TestCase):
                          korrigiere_bremswert(name='Warmfahren', wert=1).
                          korrekturwerte_bremse)
 
+    def test_loesche_bremswertkorrektur(self):
+        ergo = Ergometer()
+        ergo = replace(ergo, korrekturwerte_bremse={'Intervall': -10, 'Warmfahren': 1})
+        self.assertEqual({'Intervall': -10, 'Warmfahren': 1},
+                         ergo.loesche_bremswertkorrektur('foo').korrekturwerte_bremse)
+        self.assertEqual({'Intervall': -10},
+                         ergo.loesche_bremswertkorrektur('Warmfahren').korrekturwerte_bremse)
+        self.assertEqual({},
+                         ergo.loesche_bremswertkorrektur('Warmfahren').
+                         loesche_bremswertkorrektur('Intervall').korrekturwerte_bremse)
+        self.assertEqual({}, ergo.loesche_bremswertkorrektur(None).korrekturwerte_bremse)
+        self.assertEqual({'Intervall': -10, 'Warmfahren': 1},
+                         ergo.loesche_bremswertkorrektur().korrekturwerte_bremse)
+
     def test_berechne_korigierten_bremswert(self):
         ergo = Ergometer()
         ergo = ergo.korrigiere_bremswert(wert=110)

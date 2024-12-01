@@ -40,6 +40,12 @@ class Ergometer:
                                                                    for key, value
                                                                    in self.korrekturwerte_bremse.items()})
 
+    def loesche_bremswertkorrektur(self, name: str | None = '') -> Ergometer:
+        """Um kein Loeschen aller Werte aus Faulheit, nicht None als default, sondern leerer String."""
+        return replace(self, korrekturwerte_bremse={}) if name is None else replace(
+            self,
+            korrekturwerte_bremse={key: value for key, value in self.korrekturwerte_bremse.items() if name != key})
+
     def berechne_korigierten_bremswert(self, name: str = None, ausgangs_wert: int = 0) -> int:
         # Diese Funktion berechnet den eigentlich Wert, der ans Device gesendet wird
         return min(max(ausgangs_wert + self.korrekturwerte_bremse.get(name, 0), 0), 100)   # 0 <= x <= 100

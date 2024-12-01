@@ -34,6 +34,7 @@ class ApplikationController:
                 if status.gedrueckte_taste:
                     # Fuehre den zur gedrueckten Taste passenden Befehl aus.
                     funktion, argumente = cmd.command_mapper(status)
+                    # Pruefe den Rueckgabewert der Funktion. Wenn Ergometer, dann aktuallisiere ergo
                     if isinstance(result := funktion(**argumente), self.modell.ergo.__class__):
                         status.modell.ergo = result
         return status
