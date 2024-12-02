@@ -142,6 +142,23 @@ def erzeuge_trainingsprogramm_G1_mit_sprints(pwm: tuple[int, int], cad: tuple[in
                         in range(int((dauer_in_minuten - warmfahrzeit - set_zeit * sprints) / block_groesse))]
     return Trainingsprogramm("G1 mit 15sek Sprints", grundlage_vor + intervall + grundlage_danach)
 
+def erzeuge_trainingsprogramm_K3(pwm: tuple[int,int], cad: tuple[int,int], warmfahrzeit: int = 10, ausfahrzeit: int = 10,
+                                 wiederholungen: int = 3, intervall_dauer: int = 10, intervall_pause: int = 5):
+
+    zeit_pause, zeit_intervall = (intervall_pause, intervall_dauer)
+    to_millis = 60 * 1000
+
+    warmfahren = [
+        trainingsinhalt.Dauermethode("Warmfahren", warmfahrzeit * to_millis, cad[0], pwm[0],
+                                     trainingsinhalt.BelastungTypen.G1),
+    ]
+    intervall = intervall_builder(dauer=(zeit_pause, zeit_intervall), pwm=pwm, cad=cad, name=("Pause", "Intervall"),
+                                  wiederholungen=wiederholungen)
+    ausfahren = [
+        trainingsinhalt.Dauermethode("Ausfahren", (ausfahrzeit - intervall_pause) * to_millis, cad[0], pwm[0],
+                                     trainingsinhalt.BelastungTypen.G1)
+    ]
+    return Trainingsprogramm("K3", warmfahren + intervall + ausfahren, unendlich=False)
 
 def intervall_builder(dauer: (int, int), pwm: (int, int), cad: (int, int), name: (str, str),
                       wiederholungen: int, ohne_letzte_pause=False) -> list[Trainingsinhalt]:

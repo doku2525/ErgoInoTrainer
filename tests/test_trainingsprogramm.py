@@ -4,7 +4,7 @@ from dataclasses import replace
 from src.classes import trainingsinhalt
 from src.classes.trainingsprogramm import (Trainingsprogramm, erzeuge_trainingsprogramm_G1,
                                            erzeuge_trainingsprogramm_G2Intervall, erzeuge_trainingsprogramm_Tabata,
-                                           erzeuge_trainingsprogramm_G1_mit_sprints)
+                                           erzeuge_trainingsprogramm_G1_mit_sprints, erzeuge_trainingsprogramm_K3)
 from src.classes.trainingsinhalt import Dauermethode
 import copy
 
@@ -276,6 +276,47 @@ class test_Trainingsprogramm(TestCase):
                          training.fuehre_aus(warmfahrzeit * to_millis).name)
         self.assertEqual("G1",
                          training.fuehre_aus(int((warmfahrzeit + zeit_set * reps) * to_millis + 1)).name)
+        for zeit in range(0, reps):
+            self.assertEqual("Intervall",
+                             training.fuehre_aus(int(warmfahrzeit * to_millis + 1 + zeit * zeit_set * to_millis)).name,
+                             f"Zeit = {zeit}")
+            self.assertEqual("Intervall",
+                             training.fuehre_aus(int((warmfahrzeit + zeit_intervall) * to_millis + zeit *
+                                                 zeit_set * to_millis)).name,
+                             f"Zeit = {zeit}")
+            self.assertEqual(zeit_intervall * to_millis,
+                             training.fuehre_aus(int(warmfahrzeit * to_millis + 1 + zeit * zeit_set * to_millis)).dauer(),
+                             f"Zeit = {zeit}")
+            self.assertEqual("Pause",
+                             training.fuehre_aus(int((warmfahrzeit + zeit_intervall) * to_millis + 1 + zeit *
+                                                 zeit_set * to_millis)).name,
+                             f"Zeit = {zeit}")
+            self.assertEqual("Pause",
+                             training.fuehre_aus(int((warmfahrzeit + zeit_set) * to_millis - 1 + zeit * zeit_set
+                                                 * to_millis)).name,
+                             f"Zeit = {zeit}")
+            self.assertEqual(zeit_pause * to_millis,
+                             training.fuehre_aus(int((warmfahrzeit + zeit_intervall) * to_millis + 1 + zeit *
+                                                 zeit_set * to_millis)).dauer(), f"Zeit = {zeit}")
+
+    def test_erzeuge_trainingsprogramm_K3(self):
+        training = erzeuge_trainingsprogramm_K3((35, 80), (100, 50), intervall_dauer=5)
+        zeit_intervall = 5
+        zeit_pause = 5
+        zeit_set = zeit_intervall + zeit_pause
+        warmfahrzeit = 10
+        ausfahrzeit = 10 - zeit_pause
+        reps = 3
+        to_millis = 60 * 1000
+
+        self.assertEqual(3 * 2 + 2, len(training.inhalte))
+        self.assertTrue(not training.unendlich)
+        self.assertEqual((warmfahrzeit + (zeit_set * reps) + ausfahrzeit) * to_millis,
+                         training.trainingszeit_dauer_gesamt())
+        self.assertEqual("Warmfahren",
+                         training.fuehre_aus(warmfahrzeit * to_millis).name)
+        self.assertEqual("Ausfahren",
+                         training.fuehre_aus(int((warmfahrzeit + zeit_set * reps) * to_millis) + 1).name)
         for zeit in range(0, reps):
             self.assertEqual("Intervall",
                              training.fuehre_aus(int(warmfahrzeit * to_millis + 1 + zeit * zeit_set * to_millis)).name,
