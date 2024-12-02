@@ -4,7 +4,6 @@ import src.classes.trainingsinhalt as trainingsinhalt
 from src.classes.trainingsinhalt import Trainingsinhalt
 
 
-# TODO Trainingsprogramm als frozen dataclass implementieren
 @dataclass(frozen=True)
 class Trainingsprogramm:
     name: str = field(default_factory=str)
@@ -12,31 +11,16 @@ class Trainingsprogramm:
     ergebnisse: list = field(default_factory=list)
     unendlich: bool = field(default=True)
 
-    # def __init__(self, name: str, inhalte: list[Trainingsinhalt], ergebnisse: list = None, unendlich: bool = True):
-    #     self.name: str = name
-    #     self.inhalte: list[Trainingsinhalt] = inhalte  # Liste von Trainingsinhalt-Objekten
-    #     self.ergebnisse: list = [] if ergebnisse is None else ergebnisse
-    #     self.unendlich: bool = unendlich  # FALSE = Beende die Ausfuehrung nach erreichen der Gesamttrainingszeit
-
-    # TODO self.unendlich wird noch nicht benutzt
     def fuehre_aus(self, zeit_in_ms: int) -> Trainingsinhalt:
         return self.inhalte[self.finde_index_des_aktuellen_inhalts(zeit_in_ms)]
 
     def verarbeite_messwerte(self, zeit_in_ms: int, distanze: int) -> Trainingsprogramm:
-        # TODO Fuer funktionalen Stil nicht die Variable veraendern und die Liste senden,
-        #   sondern neues Objekt mit veraenderter Liste senden.
         def bedingung() -> bool:
             return self.finde_index_des_aktuellen_inhalts(zeit_in_ms) > len(self.ergebnisse)-1
         return replace(self, ergebnisse=(self.ergebnisse if bedingung() else self.ergebnisse[0:-1]) + [distanze])
-        # if self.finde_index_des_aktuellen_inhalts(zeit_in_ms) > len(self.ergebnisse)-1:
-        #     return replace(self, ergebnisse=self.ergebnisse + [distanze])
-        # else:
-        #     return replace()
-        #     self.ergebnisse = self.ergebnisse[0:-1] + [distanze]
-        # return self.ergebnisse
 
     def berechne_distanze_pro_fertige_inhalte(self) -> list:
-        if self.ergebnisse == []:
+        if not self.ergebnisse:
             return self.ergebnisse
         if len(self.ergebnisse) == 1:
             return self.ergebnisse[1:]
@@ -51,7 +35,7 @@ class Trainingsprogramm:
             return 0
         if len(result) == 1:
             return result[0]
-        return result[1] - result[0]    # Fuer komplette Kurbelumdrehnungen im aktuellen Zeitfenster muss result[0] + 1 gerechnet werden
+        return result[1] - result[0]  # Fur kompl. Kurbumdreh. im aktue. Zeitfenster muss result[0]+1 gerechnet werden
 
     def fuehre_naechstes_aus(self, zeit_in_ms: int) -> Trainingsinhalt:
         if rest_liste := self.inhalte[self.finde_index_des_aktuellen_inhalts(zeit_in_ms) + 1:]:
@@ -155,7 +139,9 @@ def erzeuge_trainingsprogramm_G1_mit_sprints(pwm: tuple[int, int], cad: tuple[in
                         in range(int((dauer_in_minuten - warmfahrzeit - set_zeit * sprints) / block_groesse))]
     return Trainingsprogramm("G1 mit 15sek Sprints", grundlage_vor + intervall + grundlage_danach)
 
-def erzeuge_trainingsprogramm_K3(pwm: tuple[int,int], cad: tuple[int,int], warmfahrzeit: int = 10, ausfahrzeit: int = 10,
+
+def erzeuge_trainingsprogramm_K3(pwm: tuple[int, int], cad: tuple[int, int],
+                                 warmfahrzeit: int = 10, ausfahrzeit: int = 10,
                                  wiederholungen: int = 3, intervall_dauer: int = 10, intervall_pause: int = 5):
 
     zeit_pause, zeit_intervall = (intervall_pause, intervall_dauer)
@@ -172,6 +158,7 @@ def erzeuge_trainingsprogramm_K3(pwm: tuple[int,int], cad: tuple[int,int], warmf
                                      trainingsinhalt.BelastungTypen.G1)
     ]
     return Trainingsprogramm("K3", warmfahren + intervall + ausfahren, unendlich=False)
+
 
 def intervall_builder(dauer: (int, int), pwm: (int, int), cad: (int, int), name: (str, str),
                       wiederholungen: int, ohne_letzte_pause=False) -> list[Trainingsinhalt]:
