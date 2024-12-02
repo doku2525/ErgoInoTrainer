@@ -32,37 +32,37 @@ class test_Trainingsprogramm(TestCase):
 
     def test_verarbeite_messwerte(self):
         self.plan = replace(self.plan, inhalte=self.plan.inhalte * 5)
-        self.assertEqual(self.plan.verarbeite_messwerte(0, 5).ergebnisse, [5])
-        self.assertEqual(self.plan.verarbeite_messwerte(5000, 5).ergebnisse, [5])
-        self.assertEqual(self.plan.verarbeite_messwerte(10000, 10).ergebnisse, [10])
+        self.assertEqual(self.plan.verarbeite_messwerte(0, 5).ergebnisse, (5, ))
+        self.assertEqual(self.plan.verarbeite_messwerte(5000, 5).ergebnisse, (5, ))
+        self.assertEqual(self.plan.verarbeite_messwerte(10000, 10).ergebnisse, (10, ))
         self.plan = self.plan.verarbeite_messwerte(10000, 10)
-        self.assertEqual(self.plan.verarbeite_messwerte(15000, 15).ergebnisse, [10, 15])
+        self.assertEqual(self.plan.verarbeite_messwerte(15000, 15).ergebnisse, (10, 15))
         self.plan = self.plan.verarbeite_messwerte(15000, 15)
-        self.assertEqual(self.plan.verarbeite_messwerte(20001, 20).ergebnisse, [10, 15, 20])
+        self.assertEqual(self.plan.verarbeite_messwerte(20001, 20).ergebnisse, (10, 15, 20))
 
     def test_verarbeite_messwerte_falsche(self):
         # Macht in der Praxis keinen Sinn und sollte von der Programmlogik der Aufrufenden Funktion abgefangen werden
         self.plan = replace(self.plan, inhalte=self.plan.inhalte * 5)
-        self.assertEqual(self.plan.verarbeite_messwerte(20001, 5).ergebnisse, [5])
+        self.assertEqual(self.plan.verarbeite_messwerte(20001, 5).ergebnisse, (5, ))
         self.plan = self.plan.verarbeite_messwerte(20001, 5)
-        self.assertEqual(self.plan.verarbeite_messwerte(20001, 5).ergebnisse, [5, 5])
+        self.assertEqual(self.plan.verarbeite_messwerte(20001, 5).ergebnisse, (5, 5))
         self.plan = self.plan.verarbeite_messwerte(20001, 5)
-        self.assertEqual(self.plan.verarbeite_messwerte(20001, 5).ergebnisse, [5, 5, 5])
+        self.assertEqual(self.plan.verarbeite_messwerte(20001, 5).ergebnisse, (5, 5, 5))
         self.plan = self.plan.verarbeite_messwerte(20001, 5)
-        self.assertEqual(self.plan.verarbeite_messwerte(10001, 10).ergebnisse, [5, 5, 10])
+        self.assertEqual(self.plan.verarbeite_messwerte(10001, 10).ergebnisse, (5, 5, 10))
 
     def test_berechne_distanze_pro_fertige_inhalte(self):
         self.plan = replace(self.plan, inhalte=self.plan.inhalte * 5)
         self.plan = self.plan.verarbeite_messwerte(0, 5)
-        self.assertEqual(self.plan.berechne_distanze_pro_fertige_inhalte(), [])
+        self.assertEqual(self.plan.berechne_distanze_pro_fertige_inhalte(), ())
         self.plan = self.plan.verarbeite_messwerte(5000, 5)
-        self.assertEqual(self.plan.berechne_distanze_pro_fertige_inhalte(), [])
+        self.assertEqual(self.plan.berechne_distanze_pro_fertige_inhalte(), ())
         self.plan = self.plan.verarbeite_messwerte(10000, 10)
-        self.assertEqual(self.plan.berechne_distanze_pro_fertige_inhalte(), [])
+        self.assertEqual(self.plan.berechne_distanze_pro_fertige_inhalte(), ())
         self.plan = self.plan.verarbeite_messwerte(15000, 15)
-        self.assertEqual(self.plan.berechne_distanze_pro_fertige_inhalte(), [10])
+        self.assertEqual(self.plan.berechne_distanze_pro_fertige_inhalte(), (10, ))
         self.plan = self.plan.verarbeite_messwerte(20001, 21)
-        self.assertEqual(self.plan.berechne_distanze_pro_fertige_inhalte(), [10, 5])
+        self.assertEqual(self.plan.berechne_distanze_pro_fertige_inhalte(), (10, 5))
 
     def test_berechne_distanze_aktueller_inhalt(self):
         self.plan = replace(self.plan, inhalte=self.plan.inhalte * 5)

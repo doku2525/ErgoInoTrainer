@@ -8,7 +8,7 @@ from src.classes.trainingsinhalt import Trainingsinhalt
 class Trainingsprogramm:
     name: str = field(default_factory=str)
     inhalte: list[Trainingsinhalt] = field(default_factory=list)
-    ergebnisse: list = field(default_factory=list)
+    ergebnisse: tuple = field(default_factory=tuple)
     unendlich: bool = field(default=True)
 
     def fuehre_aus(self, zeit_in_ms: int) -> Trainingsinhalt:
@@ -17,17 +17,17 @@ class Trainingsprogramm:
     def verarbeite_messwerte(self, zeit_in_ms: int, distanze: int) -> Trainingsprogramm:
         def bedingung() -> bool:
             return self.finde_index_des_aktuellen_inhalts(zeit_in_ms) > len(self.ergebnisse)-1
-        return replace(self, ergebnisse=(self.ergebnisse if bedingung() else self.ergebnisse[0:-1]) + [distanze])
+        return replace(self, ergebnisse=(self.ergebnisse if bedingung() else self.ergebnisse[0:-1]) + (distanze,))
 
-    def berechne_distanze_pro_fertige_inhalte(self) -> list:
+    def berechne_distanze_pro_fertige_inhalte(self) -> tuple:
         if not self.ergebnisse:
             return self.ergebnisse
         if len(self.ergebnisse) == 1:
             return self.ergebnisse[1:]
         else:
-            return self.ergebnisse[:1] + [zweiter_wert - erster_wert
-                                          for erster_wert, zweiter_wert
-                                          in zip(self.ergebnisse, self.ergebnisse[1:])][:-1]
+            return self.ergebnisse[:1] + tuple([zweiter_wert - erster_wert
+                                                for erster_wert, zweiter_wert
+                                                in zip(self.ergebnisse, self.ergebnisse[1:])][:-1])
 
     def berechne_distanze_aktueller_inhalt(self) -> int:
         result = self.ergebnisse[-2:]
@@ -57,7 +57,6 @@ class Trainingsprogramm:
         return sum([element.dauer() for element in self.inhalte[:aktueller_index]])
 
     def berechne_distanze_gesamt(self) -> int:
-        print(f"{self.inhalte}")
         return sum([element.distanze() for element in self.inhalte])
 
     def finde_index_des_aktuellen_inhalts(self, zeit_in_ms: int) -> int:
