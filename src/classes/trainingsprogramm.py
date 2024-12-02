@@ -148,7 +148,7 @@ def erzeuge_trainingsprogramm_K3(pwm: tuple[int, int], cad: tuple[int, int],
 
     warmfahren = [
         trainingsinhalt.Dauermethode("Warmfahren", warmfahrzeit * to_millis, cad[0], pwm[0],
-                                     trainingsinhalt.BelastungTypen.G1),
+                                     trainingsinhalt.BelastungTypen.G1)
     ]
     intervall = intervall_builder(dauer=(zeit_pause, zeit_intervall), pwm=pwm, cad=cad, name=("Pause", "Intervall"),
                                   wiederholungen=wiederholungen)
