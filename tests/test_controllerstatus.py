@@ -86,25 +86,25 @@ class test_ControllerStatus(TestCase):
         # Es sollte nur bei einer Konstellation true ergeben
         mock_update_zeit.return_value = True
         mock_als_ms.return_value = self.status.modell.trainingsprogramm.trainingszeit_dauer_gesamt() + 1
-        self.status.modell.trainingsprogramm.unendlich = False
+        self.status.modell.trainingsprogramm = replace(self.status.modell.trainingsprogramm, unendlich=False)
         self.assertTrue(self.status.trainingsende_pause_machen())
 
         # Fuer sich aendernde ControllerStatus.gestoppte_zeit
         mock_update_zeit.return_value = True
         mock_als_ms.return_value = self.status.modell.trainingsprogramm.trainingszeit_dauer_gesamt()
-        self.status.modell.trainingsprogramm.unendlich = False
+        self.status.modell.trainingsprogramm = replace(self.status.modell.trainingsprogramm, unendlich=False)
         self.assertFalse(self.status.trainingsende_pause_machen())
 
         # Fuer sich aendernde ControllerStatus.es_ist_zeit_fuer_update()
         mock_update_zeit.return_value = False
         mock_als_ms.return_value = self.status.modell.trainingsprogramm.trainingszeit_dauer_gesamt() + 1
-        self.status.modell.trainingsprogramm.unendlich = False
+        self.status.modell.trainingsprogramm = replace(self.status.modell.trainingsprogramm, unendlich=False)
         self.assertFalse(self.status.modell.trainingsprogramm.unendlich)
 
         # Fuer sich aendernde ControllerStatus.modell.trainingsprogramm.unendlich
         mock_update_zeit.return_value = True
         mock_als_ms.return_value = self.status.modell.trainingsprogramm.trainingszeit_dauer_gesamt() + 1
-        self.status.modell.trainingsprogramm.unendlich = True
+        self.status.modell.trainingsprogramm = replace(self.status.modell.trainingsprogramm, unendlich=True)
         self.assertFalse(self.status.trainingsende_pause_machen())
 
     @patch('src.classes.stoppuhr.FlexibleZeit.als_ms')

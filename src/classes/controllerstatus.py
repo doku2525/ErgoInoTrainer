@@ -114,8 +114,9 @@ class ControllerStatus:
         # TODO Unterteile in Updates, die waherend der Pause nicht durchgefuehrt werden muessen und staendigen
         # TODO Herzwerte durch Dummy bzw. echte BLEDvice testen.
         self.update_werte_nach_trainingsplan()
-        self.modell.trainingsprogramm.verarbeite_messwerte(self.gestoppte_zeit.als_ms(),
-                                                           self.modell.ergo.lese_distance())
+        self.modell.trainingsprogramm = (self.modell.trainingsprogramm.
+                                         verarbeite_messwerte(self.gestoppte_zeit.als_ms(),
+                                                              self.modell.ergo.lese_distance()))
         self.update_musik()
         self.update_ergometer()
         self.update_pulswerte()

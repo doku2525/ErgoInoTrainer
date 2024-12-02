@@ -1,27 +1,39 @@
+from __future__ import annotations
+from dataclasses import dataclass, field, replace
 import src.classes.trainingsinhalt as trainingsinhalt
 from src.classes.trainingsinhalt import Trainingsinhalt
 
 
 # TODO Trainingsprogramm als frozen dataclass implementieren
+@dataclass(frozen=True)
 class Trainingsprogramm:
-    def __init__(self, name: str, inhalte: list[Trainingsinhalt], ergebnisse: list = None, unendlich: bool = True):
-        self.name: str = name
-        self.inhalte: list[Trainingsinhalt] = inhalte  # Liste von Trainingsinhalt-Objekten
-        self.ergebnisse: list = [] if ergebnisse is None else ergebnisse
-        self.unendlich: bool = unendlich  # FALSE = Beende die Ausfuehrung nach erreichen der Gesamttrainingszeit
+    name: str = field(default_factory=str)
+    inhalte: list[Trainingsinhalt] = field(default_factory=list)
+    ergebnisse: list = field(default_factory=list)
+    unendlich: bool = field(default=True)
+
+    # def __init__(self, name: str, inhalte: list[Trainingsinhalt], ergebnisse: list = None, unendlich: bool = True):
+    #     self.name: str = name
+    #     self.inhalte: list[Trainingsinhalt] = inhalte  # Liste von Trainingsinhalt-Objekten
+    #     self.ergebnisse: list = [] if ergebnisse is None else ergebnisse
+    #     self.unendlich: bool = unendlich  # FALSE = Beende die Ausfuehrung nach erreichen der Gesamttrainingszeit
 
     # TODO self.unendlich wird noch nicht benutzt
     def fuehre_aus(self, zeit_in_ms: int) -> Trainingsinhalt:
         return self.inhalte[self.finde_index_des_aktuellen_inhalts(zeit_in_ms)]
 
-    def verarbeite_messwerte(self, zeit_in_ms: int, distanze: int) -> list:
+    def verarbeite_messwerte(self, zeit_in_ms: int, distanze: int) -> Trainingsprogramm:
         # TODO Fuer funktionalen Stil nicht die Variable veraendern und die Liste senden,
         #   sondern neues Objekt mit veraenderter Liste senden.
-        if self.finde_index_des_aktuellen_inhalts(zeit_in_ms) > len(self.ergebnisse)-1:
-            self.ergebnisse = self.ergebnisse + [distanze]
-        else:
-            self.ergebnisse = self.ergebnisse[0:-1] + [distanze]
-        return self.ergebnisse
+        def bedingung() -> bool:
+            return self.finde_index_des_aktuellen_inhalts(zeit_in_ms) > len(self.ergebnisse)-1
+        return replace(self, ergebnisse=(self.ergebnisse if bedingung() else self.ergebnisse[0:-1]) + [distanze])
+        # if self.finde_index_des_aktuellen_inhalts(zeit_in_ms) > len(self.ergebnisse)-1:
+        #     return replace(self, ergebnisse=self.ergebnisse + [distanze])
+        # else:
+        #     return replace()
+        #     self.ergebnisse = self.ergebnisse[0:-1] + [distanze]
+        # return self.ergebnisse
 
     def berechne_distanze_pro_fertige_inhalte(self) -> list:
         if self.ergebnisse == []:
