@@ -2,6 +2,7 @@ import src.classes.trainingsinhalt as trainingsinhalt
 from src.classes.trainingsinhalt import Trainingsinhalt
 
 
+# TODO Trainingsprogramm als frozen dataclass implementieren
 class Trainingsprogramm:
     def __init__(self, name: str, inhalte: list[Trainingsinhalt], ergebnisse: list = None, unendlich: bool = True):
         self.name: str = name
