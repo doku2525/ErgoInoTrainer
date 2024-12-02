@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Callable, TYPE_CHECKING
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 import src.modules.audiomodul as audio
 import pygame
 
@@ -51,8 +51,8 @@ def pause_nach_inhalt(status: ControllerStatus) -> None:
 
 
 def change_unendlich_status_in_trainingsprogramm(status: ControllerStatus) -> None:
-    print(f"Status veraendert: {status.modell.trainingsprogramm.unendlich}")
-    status.modell.trainingsprogramm.unendlich = not status.modell.trainingsprogramm.unendlich
+    status.modell.trainingsprogramm = replace(status.modell.trainingsprogramm,
+                                              unendlich=not status.modell.trainingsprogramm.unendlich)
 
 
 @dataclass(frozen=True)

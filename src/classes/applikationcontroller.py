@@ -1,4 +1,5 @@
 from __future__ import annotations
+from dataclasses import replace
 from typing import Callable, TYPE_CHECKING
 import sys
 import pygame
@@ -108,7 +109,7 @@ class ApplikationController:
                 status.gedrueckte_taste = "PAUSE"
                 funct, args = cmd.command_mapper(status)
                 funct(**args)
-                status.modell.trainingsprogramm.unendlich = True
+                status.modell.trainingsprogramm = replace(status.modell.trainingsprogramm, unendlich=True)
 
             if status.pause_am_ende_des_aktuellen_inhalts():
                 status.gedrueckte_taste = "PAUSE"
