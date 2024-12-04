@@ -1,14 +1,14 @@
 from __future__ import annotations
 from dataclasses import replace
-from typing import Callable, TYPE_CHECKING
-import sys
-import pygame
 import datetime
+import pygame
+import sys
+from typing import Callable, TYPE_CHECKING
 
-from src.classes.controllerstatus import ControllerStatus
-from src.classes.viewdatenmodell import ViewDatenmodell
 import src.classes.commandmapper as cmd
+from src.classes.controllerstatus import ControllerStatus
 from src.classes.datenprozessor import DatenProcessor   # TODO Noch wurde DatenProcessor nicht implementiert!!!
+from src.classes.viewdatenmodell import ViewDatenmodell
 
 if TYPE_CHECKING:
     from src.classes.applikationmodel import ApplikationModell

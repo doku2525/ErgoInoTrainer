@@ -1,8 +1,9 @@
 from __future__ import annotations
-from typing import Callable, TYPE_CHECKING
 from dataclasses import dataclass, field, replace
-import src.modules.audiomodul as audio
 import pygame
+from typing import Callable, TYPE_CHECKING
+
+import src.modules.audiomodul as audio
 
 if TYPE_CHECKING:
     from src.classes.controllerstatus import ControllerStatus

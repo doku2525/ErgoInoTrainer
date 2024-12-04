@@ -1,6 +1,7 @@
 from __future__ import annotations
-from typing import Optional, TYPE_CHECKING
 from dataclasses import dataclass, field, replace
+from typing import Optional, TYPE_CHECKING
+
 from src.classes.stoppuhr import FlexibleZeit
 if TYPE_CHECKING:
     from src.classes.devicedatenmodell import DeviceDatenModell

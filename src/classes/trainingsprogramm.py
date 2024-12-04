@@ -1,7 +1,11 @@
 from __future__ import annotations
 from dataclasses import dataclass, field, replace
+from typing import TYPE_CHECKING
+
 import src.classes.trainingsinhalt as trainingsinhalt
-from src.classes.trainingsinhalt import Trainingsinhalt
+
+if TYPE_CHECKING:
+    from src.classes.trainingsinhalt import Trainingsinhalt
 
 
 @dataclass(frozen=True)
