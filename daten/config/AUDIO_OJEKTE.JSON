@@ -50,13 +50,29 @@
     {
         "filename": "media/sounds/\u677e\u5d0e\u30ca\u30aa - \u5ddd\u3079\u308a\u306e\u5bb6.mp3",
         "trainingsplan": [
+            "TabataAlt"
+        ],
+        "trainingsinhalt": [
+            "AusfahrenAlt"
+        ],
+        "zeit_start": -9100,
+        "dauer": 175000,
+        "prioritaet": [
+            100,
+            50
+        ],
+        "loops": 0
+    },
+    {
+        "filename": "media/sounds/TARA_SexyLove.mp3",
+        "trainingsplan": [
             "Tabata"
         ],
         "trainingsinhalt": [
             "Ausfahren"
         ],
         "zeit_start": -9100,
-        "dauer": 175000,
+        "dauer": 232000,
         "prioritaet": [
             100,
             50
