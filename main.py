@@ -33,6 +33,7 @@ meine_trainings_programme = [
 
 
 def waehle_trainingsprogramm_tkinter(meine_programme: list[(str, str, Trainingsprogramm)]) -> (Trainingsprogramm, int):
+    """Grafische Hilfsfunktion zum Waehlen des auzufuehrenden Trainingsprogramms beim Programmstart"""
     auswahl_text = [f"{index} : {element[0]} \t-> \t{element[1]}" for index, element in enumerate(meine_programme)]
     eingabe = simpledialog.askinteger("Waehle Trainingsprogramm", "\t\n".join(auswahl_text + ["-1 : Beenden\n"]))
     if eingabe in [-1, None]:
@@ -42,6 +43,7 @@ def waehle_trainingsprogramm_tkinter(meine_programme: list[(str, str, Trainingsp
 
 
 def waehle_trainingsprogramm_commandline(meine_programme: list[(str, str, Trainingsprogramm)]) -> Trainingsprogramm:
+    """Hilfsfunktion fuer die Konsole zum Waehlen des auzufuehrenden Trainingsprogramms beim Programmstart"""
     for index, element in enumerate(meine_programme):
         print(f"{index} : {element[0]} -> {element[1]}")
     eingabe = int(input("Waehle Programm: "))
@@ -49,6 +51,9 @@ def waehle_trainingsprogramm_commandline(meine_programme: list[(str, str, Traini
 
 
 def log_file_warnung_tkinter(log_files: list[str]) -> str | None:
+    """Bei Trainingsprogrammen ausser 'Test xxxxx' nachfragen, in welche Logdatei geschrieben werden soll,
+    da standardmaeszig schreiben auf Konsole aktiviert ist, um log nicht mit sinnlosen Testwerten vollzuschreiben.
+    Beim Starten einer der 'Test xxxxx'-Programme erscheint deshalb keine Nachfrage."""
     auswahl_text = [f"{index} : {str(file)}" for index, file in enumerate(log_files)]
     eingabe = simpledialog.askinteger("Waehle Logfile", "\t\n".join(auswahl_text))
     return log_files[eingabe] if eingabe in range(len(log_files)) else sys.exit()
@@ -56,33 +61,42 @@ def log_file_warnung_tkinter(log_files: list[str]) -> str | None:
 
 def main():
 
+    # Liste der Logfiles.
     log_files = [
-        'daten/log/trainer.log',
-        'daten/log/trainer.tmp',
-        None
+        'daten/log/trainer.log',        # Mit den echten Trainingsaufzeichnungen
+        'daten/log/trainer.tmp',        # Zum Testen der Ausgabe in Datei
+        None                            # Keine Logdatei. Ausgabe nur auf die Konsole.
     ]
-    log_file = log_files[-1]
+    log_file = log_files[-1]            # Setze default auf None
 
     mein_modell = ApplikationModell()   # Als Standard wird ArduinoBoard in ApplikationModell initialisiert
-    mein_modell.puls_device = PulsmesserBLEDevice()
+    mein_modell.puls_device = PulsmesserBLEDevice()     # BLE-Pulsbrustgurt initialisieren. TODO nicht implementiert
 
+    # Trainingsprogramm ueber Hilfsfunktion abfragen und laden. Bei falscher Kombination von TProgramm und logfile
+    # Abfrage nach dem zu benutzenden logfile
+    # TProgramme mit dem Namen 'Test xxxxx' werden ohne logfile ausgefuehrt.
+    # Die anderen realen TProgramme sollten mit 'trainer.log' ausgefuehrt werden.
     mein_modell.trainingsprogramm, eingabe = waehle_trainingsprogramm_tkinter(meine_programme=meine_trainings_programme)
     if not meine_trainings_programme[eingabe][0][:4] == 'Test' and log_file is None:
         log_file = log_file_warnung_tkinter(log_files=log_files)
     elif meine_trainings_programme[eingabe][0][:4] == 'Test' and log_file and log_file[-3:] == "log":
         log_file = log_file_warnung_tkinter(log_files=log_files)
 
-    # Initialisiere die einzelnen Views und erzeuge Liste mir den noetigen
+    # Initialisiere die einzelnen Views und erzeuge Liste mir den zu uebergebenden Views
     pygame_view = ApplikationView()
     flask_view = FlaskView()
     meine_views = [pygame_view, flask_view]
 
     # Starte den Flask-Server im Hintergrund
     flask_view.start_server() if flask_view in meine_views else None
-    # Decathlon blt_addresse="FA:2B:6E:F2:0B:A7", hrCtlHandle=, hrHandle=
+    # Decathlon blt_addresse="FA:2B:6E:F2:0B:A7", hrCtlHandle=, hrHandle=  # TODO Der neue BLE von Decathlon
 
+    # Initialisere Controller und starte programm_loop
     controller = ApplikationController(model=mein_modell, views=meine_views, log_file=log_file)
     controller.programm_loop(fps=100)
+
+    # Nach Ende der programm_loop() Arduino unbedingt auf 0 stellen, um Summen der Bremse zu stoppen. Ist eigentlich
+    # schon Teil der Funktion beende() die beim Beenden der programm_loop() aufgerufen wird, aber doppelt haelt besser.
     mein_modell.board.sendeUndLeseWerte(neuer_bremswert=0)
 
 
