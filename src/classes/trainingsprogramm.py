@@ -157,7 +157,7 @@ def erzeuge_trainingsprogramm_K3(pwm: tuple[int, int], cad: tuple[int, int],
     intervall = intervall_builder(dauer=(zeit_pause, zeit_intervall), pwm=pwm, cad=cad, name=("Pause", "Intervall"),
                                   wiederholungen=wiederholungen)
     ausfahren = [
-        trainingsinhalt.Dauermethode("Ausfahren", (ausfahrzeit - intervall_pause) * to_millis, cad[0], pwm[0],
+        trainingsinhalt.Dauermethode("Ausfahren", ausfahrzeit * to_millis, cad[0], pwm[0],
                                      trainingsinhalt.BelastungTypen.G1)
     ]
     return Trainingsprogramm("K3", warmfahren + intervall + ausfahren, unendlich=False)

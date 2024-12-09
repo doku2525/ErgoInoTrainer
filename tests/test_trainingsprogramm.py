@@ -307,7 +307,7 @@ class test_Trainingsprogramm(TestCase):
                                                  zeit_set * to_millis)).dauer(), f"Zeit = {zeit}")
 
     def test_erzeuge_trainingsprogramm_K3(self):
-        training = erzeuge_trainingsprogramm_K3((35, 80), (100, 50), intervall_dauer=5)
+        training = erzeuge_trainingsprogramm_K3((35, 80), (100, 50), intervall_dauer=5, ausfahrzeit=5)
         zeit_intervall = 5
         zeit_pause = 5
         zeit_set = zeit_intervall + zeit_pause
