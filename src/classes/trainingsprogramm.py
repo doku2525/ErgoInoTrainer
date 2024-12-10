@@ -48,7 +48,7 @@ class Trainingsprogramm:
             return self.inhalte[self.finde_index_des_aktuellen_inhalts(zeit_in_ms)]
 
     def trainingszeit_dauer_gesamt(self) -> int:
-        return sum([element.dauer() for element in self.inhalte])
+        return sum([element.dauer() for element in self.inhalte if element.logging])
 
     def trainingszeit_rest_gesamt(self, zeit_in_ms: int) -> int:
         return self.trainingszeit_dauer_gesamt() - zeit_in_ms
@@ -82,7 +82,8 @@ class Trainingsprogramm:
 
 
 def erzeuge_trainingsprogramm_G1(dauer_in_minuten: int, pwm: int, cad: int,
-                                 block_groesse: int = 5) -> Trainingsprogramm:
+                                 block_groesse: int = 5,
+                                 countdown: int = 15_000) -> Trainingsprogramm:
     plan = [trainingsinhalt.Dauermethode("G1", block_groesse * 60 * 1000, cad, pwm,
                                          trainingsinhalt.BelastungTypen.G1)
             for _ in range(int(dauer_in_minuten/block_groesse))]
@@ -91,7 +92,8 @@ def erzeuge_trainingsprogramm_G1(dauer_in_minuten: int, pwm: int, cad: int,
 
 def erzeuge_trainingsprogramm_G2Intervall(pwm: tuple[int, int], cad: tuple[int, int],
                                           warmfahrzeit: int = 10, ausfahrzeit: int = 5,
-                                          wiederholungen: int = 6, unendlich: bool = False) -> Trainingsprogramm:
+                                          wiederholungen: int = 6, unendlich: bool = False,
+                                          countdown: int | float | none = 0.25) -> Trainingsprogramm:
     warmfahren = [
         trainingsinhalt.Dauermethode("Warmfahren", warmfahrzeit * 60 * 1000, cad[0], pwm[0],
                                      trainingsinhalt.BelastungTypen.G1),
@@ -106,10 +108,13 @@ def erzeuge_trainingsprogramm_G2Intervall(pwm: tuple[int, int], cad: tuple[int, 
 
 
 def erzeuge_trainingsprogramm_Tabata(pwm: tuple[int, int], cad: tuple[int, int], warmfahrzeit: int | float = 10,
-                                     ausfahrzeit: int | float = 6, unendlich: bool = False) -> Trainingsprogramm:
+                                     ausfahrzeit: int | float = 6, unendlich: bool = False,
+                                     countdown: int | float | none = 0.25) -> Trainingsprogramm:
     zeit_pause = 10 / 60
     zeit_intervall = 20 / 60
     to_millis = 60 * 1000
+
+    countdown = [] if not countdown else [trainingsinhalt.Countdown(dauer_in_millis=countdown * to_millis)]
 
     warmfahren = [
         trainingsinhalt.Dauermethode("Warmfahren", warmfahrzeit * to_millis, cad[0], pwm[0],
@@ -121,12 +126,13 @@ def erzeuge_trainingsprogramm_Tabata(pwm: tuple[int, int], cad: tuple[int, int],
         trainingsinhalt.Dauermethode("Ausfahren", ausfahrzeit * to_millis, cad[0], pwm[0],
                                      trainingsinhalt.BelastungTypen.G1)
     ]
-    return Trainingsprogramm("Tabata", warmfahren + intervall + ausfahren, unendlich=unendlich)
+    return Trainingsprogramm("Tabata", countdown + warmfahren + intervall + ausfahren, unendlich=unendlich)
 
 
 def erzeuge_trainingsprogramm_G1_mit_sprints(pwm: tuple[int, int], cad: tuple[int, int], warmfahrzeit: int = 10,
                                              dauer_in_minuten: int = 90, block_groesse: int = 5,
-                                             sprints: int = 4) -> Trainingsprogramm:
+                                             sprints: int = 4,
+                                             countdown: int | float | none = 0.25) -> Trainingsprogramm:
     zeit_pause = 4.75
     zeit_intervall = 0.25
     set_zeit = zeit_pause + zeit_intervall
@@ -145,10 +151,13 @@ def erzeuge_trainingsprogramm_G1_mit_sprints(pwm: tuple[int, int], cad: tuple[in
 
 def erzeuge_trainingsprogramm_K3(pwm: tuple[int, int], cad: tuple[int, int],
                                  warmfahrzeit: int = 10, ausfahrzeit: int = 10,
-                                 wiederholungen: int = 3, intervall_dauer: int = 10, intervall_pause: int = 5):
+                                 wiederholungen: int = 3, intervall_dauer: int = 10, intervall_pause: int = 5,
+                                 countdown: int | float | None = None) -> Trainingsprogramm:
 
     zeit_pause, zeit_intervall = (intervall_pause, intervall_dauer)
     to_millis = 60 * 1000
+
+    countdown = [] if not countdown else [trainingsinhalt.Countdown(dauer_in_millis=countdown * to_millis)]
 
     warmfahren = [
         trainingsinhalt.Dauermethode("Warmfahren", warmfahrzeit * to_millis, cad[0], pwm[0],

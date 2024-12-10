@@ -68,7 +68,7 @@ class test_Audiomodul(TestCase):
         audio = self.audio
         self.assertEqual(0, len(audiomodul.build_playlist(trainingsplan=plan, audio_objekte=audio)))
 
-        plan = erzeuge_trainingsprogramm_Tabata(pwm=(1, 3), cad=(100, 100))
+        plan = erzeuge_trainingsprogramm_Tabata(pwm=(1, 3), cad=(100, 100), countdown=None)
         audio = self.audio[:1]
         self.assertEqual(8, len(audiomodul.build_playlist(trainingsplan=plan, audio_objekte=audio)))
         for index in range(8):
@@ -81,7 +81,7 @@ class test_Audiomodul(TestCase):
                  [replace(audiomodul.MEINE_AUDIO_OBJEKTE[0], trainingsinhalt=['Ausfahren'])])
         self.assertEqual(9, len(audiomodul.build_playlist(trainingsplan=plan, audio_objekte=audio)))
 
-        plan = erzeuge_trainingsprogramm_Tabata(pwm=(1, 3), cad=(100, 100))
+        plan = erzeuge_trainingsprogramm_Tabata(pwm=(1, 3), cad=(100, 100), countdown=None)
         audio = (audiomodul.MEINE_AUDIO_OBJEKTE[:1] +
                  [replace(replace(audiomodul.MEINE_AUDIO_OBJEKTE[0], trainingsinhalt=['Ausfahren']), zeit_start=0),
                   replace(replace(audiomodul.MEINE_AUDIO_OBJEKTE[0], trainingsinhalt=['Warmfahren']), zeit_start=0),

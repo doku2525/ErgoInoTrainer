@@ -17,8 +17,9 @@ class test_ControllerStatus(TestCase):
         with patch('src.modules.audiomodul.build_playlist') as mock_build_playlist:
             mock_build_playlist.return_value = []
             programm = tp.erzeuge_trainingsprogramm_Tabata((1, 10), (90, 100),
-                                                      warmfahrzeit=0.25,
-                                                      ausfahrzeit=0.25)
+                                                           warmfahrzeit=0.25,
+                                                           ausfahrzeit=0.25,
+                                                           countdown=None)
             modell = ApplikationModell(board=BoardConnector(device=None))
             modell.trainingsprogramm = programm
             self.status = ControllerStatus(modell)

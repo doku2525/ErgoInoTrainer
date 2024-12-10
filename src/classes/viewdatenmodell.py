@@ -79,6 +79,7 @@ class ViewDatenmodell:
                                        status.gestoppte_zeit.als_ms() + 1) / 1000)),
             'intervall_tabelle': [[dist, int(dist * 60 // (zeit / 1000)), 0, 0, farbe]
                                   for dist, zeit, farbe in
+                                  # TODO Hier kann die Zeile fuer Countdown elemeniert werden
                                   zip(status.modell.trainingsprogramm.berechne_distanze_pro_fertige_inhalte(),
                                       [elem.dauer() for elem in status.modell.trainingsprogramm.inhalte],
                                       [farbe_rot if elem.name == 'Intervall' else
@@ -116,16 +117,30 @@ class ViewDatenmodell:
                 return int(berechnete_zeit / 1000)
             return int(berechnete_zeit / 1000) + 1
 
+        def berechne_zeit_gesamt() -> int:
+            """Berechne die Gesamtzeit. Da TInhalte ohne logging nicht auf der uhr erscheinen sollen"""
+            # TODO Das ist noch ein ziemlicher Hack.
+            #  Es sollt die Zeit aller bereits vergangener Inhalte ohne logging addieren und diesen Wert im else-Zweig
+            #  von der Gesamtzeit abziehen.
+            if not status.modell.trainingsprogramm.fuehre_aus(status.gestoppte_zeit.als_ms()).logging:
+                return (
+                    status.gestoppte_zeit.als_s() -
+                    status.modell.trainingsprogramm.trainingszeit_dauer_aktueller_inhalt(
+                        status.gestoppte_zeit.als_s()))
+            return (status.gestoppte_zeit.als_s() -
+                    (15 if not status.modell.trainingsprogramm.inhalte[0].logging else 0))
+
         if status is None:
             return self
 
         berechneter_zeit_timer = berechne_zeit_timer()
+        berechnete_zeit_gesamt = berechne_zeit_gesamt()
         result = (self.
                   berechne_ergometer_daten(status=status).
                   berechne_intervall_daten(status=status).
                   berechne_puls_daten(status=status))
         return replace(result, **{
-            'zeit_gesamt': str(datetime.timedelta(seconds=int(status.gestoppte_zeit.als_s()))),
+            'zeit_gesamt': str(datetime.timedelta(seconds=int(berechnete_zeit_gesamt))),
             'zeit_timer': abs(berechneter_zeit_timer),
             'zeit_timer_string': (str(
                 datetime.timedelta(seconds=abs(berechneter_zeit_timer))) +

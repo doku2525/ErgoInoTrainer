@@ -31,13 +31,14 @@ class MockControllerStatus:
         self.modell.trainingsprogramm.berechne_distanze_pro_fertige_inhalte.return_value = [40, 20, 40]
         # Mock für inhalte
         # self.modell.trainingsprogramm.inhalte = Mock()
-        MockType = namedtuple('MockedType', ['name', 'dauer'])
+        MockType = namedtuple('MockedType', ['name', 'dauer', 'logging'])
         self.modell.trainingsprogramm.inhalte = [
-            Mock(dauer=Mock(return_value=20000), name='Intervall'),
-            Mock(dauer=Mock(return_value=10000), name='Pause'),
-            Mock(dauer=Mock(return_value=20000), name='Intervall')
+            Mock(dauer=Mock(return_value=20000), name='Intervall', logging=True),
+            Mock(dauer=Mock(return_value=10000), name='Pause', logging=True),
+            Mock(dauer=Mock(return_value=20000), name='Intervall', logging=True)
         ]
-        self.modell.trainingsprogramm.fuehre_aus = lambda x: MockType(name='Intervall', dauer=Mock(return_value=20000))
+        self.modell.trainingsprogramm.fuehre_aus = lambda x: MockType(name='Intervall',
+                                                                      dauer=Mock(return_value=20000), logging=True)
 
         # Mockwerte fuer berechne_puls_daten
         self.modell.pulsmesser.herzfrequenz = 140

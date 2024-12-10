@@ -41,7 +41,9 @@ class ApplikationController:
         return status
 
     def zeichne_view_und_log(self, status: ControllerStatus, daten_modell: ViewDatenmodell) -> None:
-        if status.es_ist_zeit_fuer_update():
+        # Schreibe log
+        if (status.es_ist_zeit_fuer_update() and
+                status.modell.trainingsprogramm.fuehre_aus(status.gestoppte_zeit.als_ms()).logging):
             log_string = f"{daten_modell.erzeuge_log_string()}"
             print(log_string)
             if self.log_file is not None:

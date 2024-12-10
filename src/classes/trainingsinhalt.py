@@ -10,6 +10,7 @@ class BelastungTypen(Enum):
     G1 = 3
     G2 = 4
     K3 = 5
+    NICHTSTUN = 6
 
 
 Trainingswerte = NewType("Trainingswerte", tuple[str, int, int])
@@ -24,22 +25,6 @@ class Trainingsinhalt(ABC):
     typ: BelastungTypen = field(default_factory=BelastungTypen)
     logging: bool = field(default=True)
 
-    @abstractmethod
-    def dauer(self) -> int:
-        pass
-
-    @abstractmethod
-    def distanze(self) -> int:
-        pass
-
-    @abstractmethod
-    def berechne_werte(self, zeit: int) -> Trainingswerte:
-        pass
-
-
-@dataclass(frozen=True)
-class Dauermethode(Trainingsinhalt):
-
     def dauer(self) -> int:
         return self.dauer_in_millis
 
@@ -51,13 +36,22 @@ class Dauermethode(Trainingsinhalt):
 
 
 @dataclass(frozen=True)
+class Dauermethode(Trainingsinhalt):
+    pass
+
+
+@dataclass(frozen=True)
 class Funktionsmethode(Trainingsinhalt):
-
-    def dauer(self) -> int:
-        return self.dauer_in_millis
-
-    def distanze(self) -> int:
-        pass
 
     def berechne_werte(self, zeit: int) -> Trainingswerte:
         return Trainingswerte((self.name, self.power(zeit), self.cad(zeit)))
+
+
+@dataclass(frozen=True)
+class Countdown(Trainingsinhalt):
+    name: str = field(default="Countdown")
+    logging: bool = field(default=False)
+    dauer_in_millis: int = field(default=15_000)
+    typ: BelastungTypen = field(default=BelastungTypen.NICHTSTUN)
+    power: int = field(default=0)
+    cad: int = field(default=0)

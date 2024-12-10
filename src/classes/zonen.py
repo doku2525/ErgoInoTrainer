@@ -87,6 +87,6 @@ class Zonen:
     def mergeWerteAndPower(self) -> dict:
         return {
             pwm: werte | power
-            for pwm, werte in self.calcWerteProZone().items()
+            for pwm, werte in self.calcWerteProZone().items() if pwm != 0.0
             for power in [self.calcPowerProZone()[pwm]]
         }
