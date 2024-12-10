@@ -27,21 +27,25 @@ class FlaskView:
                                       in cmd.COMMANDS if commando.flask_route is not None}
 
         self.register_kommando_routes()
-        self.define_manual_routes()
+        self.definiere_manuelle_routen()
 
-    def define_manual_routes(self):
-        # Route für die HTML-Datei
+    def definiere_manuelle_routen(self):
+        # Routen für die HTML-Dateien und die get_data fuer die JSON-Daten
         @self.app.route('/')
         @self.app.route('/index')
         def index():
             return render_template('index.html')
+
+        @self.app.route('/audiomenue')
+        def audiomenue():
+            return render_template('audiomenue.html')
 
         @self.app.route('/get_data')
         def get_data():
             return jsonify(asdict(self.daten))
 
     def register_kommando_routes(self) -> None:
-        """Registriert dynamisch einfache Routen."""
+        """Registriert dynamisch einfache Routen, die in der commandmapper.COMMANDS-Liste definiert sind."""
         for route, command in self.web_kommando_mappings.items():
             self.app.add_url_rule(f'/{route}', route, self.create_kommando_route_handler(command))
 
