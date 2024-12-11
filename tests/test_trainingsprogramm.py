@@ -18,6 +18,7 @@ class test_Trainingsprogramm(TestCase):
         self.plan = Trainingsprogramm("G1", liste)
         self.plan_mit_fuenf = Trainingsprogramm("G1", liste * 5)
         self.plan_mit_countdown = Trainingsprogramm("G1", liste_mit_countdown)
+        self.mein_filter = lambda ti: ti.typ != trainingsinhalt.BelastungTypen.COUNTDOWN
 
     def test_fuehre_aus(self):
         self.plan = replace(self.plan, inhalte=self.plan.inhalte * 5)
@@ -107,19 +108,17 @@ class test_Trainingsprogramm(TestCase):
         self.assertEqual(self.plan.trainingszeit_dauer_gesamt(), 50000)
 
     def test_trainingszeit_dauer_gesamt_mit_filter(self):
-        mein_filter = lambda ti: ti.typ != trainingsinhalt.BelastungTypen.COUNTDOWN
-        self.assertEqual(self.plan.trainingszeit_dauer_gesamt(filter_funktion=mein_filter), 10000)
+        self.assertEqual(self.plan.trainingszeit_dauer_gesamt(filter_funktion=self.mein_filter), 10000)
         self.plan = self.plan_mit_fuenf
-        self.assertEqual(self.plan.trainingszeit_dauer_gesamt(filter_funktion=mein_filter), 50000)
+        self.assertEqual(self.plan.trainingszeit_dauer_gesamt(filter_funktion=self.mein_filter), 50000)
         self.plan = self.plan_mit_fuenf
-        self.assertEqual(self.plan.trainingszeit_dauer_gesamt(filter_funktion=mein_filter), 50000)
+        self.assertEqual(self.plan.trainingszeit_dauer_gesamt(filter_funktion=self.mein_filter), 50000)
 
-    def test_trainingszeit_dauer_gesamt_mit_filter(self):
-        mein_filter = lambda ti: ti.typ != trainingsinhalt.BelastungTypen.COUNTDOWN
+    def test_trainingszeit_dauer_gesamt_mit_filter_und_countdown(self):
         self.plan = self.plan_mit_countdown
         self.assertEqual(self.plan.trainingszeit_dauer_gesamt(), 65_000)
         self.plan = self.plan_mit_countdown
-        self.assertEqual(self.plan.trainingszeit_dauer_gesamt(filter_funktion=mein_filter), 50_000)
+        self.assertEqual(self.plan.trainingszeit_dauer_gesamt(filter_funktion=self.mein_filter), 50_000)
 
     def test_trainingszeit_rest_gesamt(self):
         self.assertEqual(self.plan.trainingszeit_rest_gesamt(0), 10000)
@@ -130,6 +129,34 @@ class test_Trainingsprogramm(TestCase):
         self.plan = self.plan_mit_fuenf
         self.assertEqual(self.plan.trainingszeit_rest_gesamt(0), 50000)
         self.assertEqual(self.plan.trainingszeit_rest_gesamt(10000), 40000)
+
+    def test_trainingszeit_rest_gesamt_mit_filter(self):
+        self.assertEqual(self.plan.trainingszeit_rest_gesamt(0, self.mein_filter), 10000)
+        self.assertEqual(self.plan.trainingszeit_rest_gesamt(5000, self.mein_filter), 5000)
+        self.assertEqual(self.plan.trainingszeit_rest_gesamt(10000, self.mein_filter), 0)
+        self.assertEqual(self.plan.trainingszeit_rest_gesamt(10001, self.mein_filter), -1)
+        self.assertEqual(self.plan.trainingszeit_rest_gesamt(-1000, self.mein_filter), 11000)
+        self.plan = self.plan_mit_fuenf
+        self.assertEqual(self.plan.trainingszeit_rest_gesamt(0, self.mein_filter), 50000)
+        self.assertEqual(self.plan.trainingszeit_rest_gesamt(10000, self.mein_filter), 40000)
+
+    def test_trainingszeit_rest_gesamt_mit_filter_und_countdown(self):
+        self.plan = self.plan_mit_countdown
+        self.assertEqual(self.plan.trainingszeit_rest_gesamt(0), 65_000)
+        self.assertEqual(self.plan.trainingszeit_rest_gesamt(0, self.mein_filter), 50_000)
+        self.assertEqual(self.plan.trainingszeit_rest_gesamt(5000), 60_000)
+        self.assertEqual(self.plan.trainingszeit_rest_gesamt(5000, self.mein_filter), 45_000)
+        self.plan = replace(self.plan, inhalte= list(reversed(self.plan_mit_countdown.inhalte)))
+        # Jetzt steht Countdown am Ende. Beginnt also nach 50_000
+        self.assertEqual(self.plan.trainingszeit_rest_gesamt(0), 65_000)
+        self.assertEqual(self.plan.trainingszeit_rest_gesamt(0, self.mein_filter), 50_000)
+        self.assertEqual(self.plan.trainingszeit_rest_gesamt(50_000), 15_000)
+        self.assertEqual(self.plan.trainingszeit_rest_gesamt(50_000, self.mein_filter), 0)
+        self.assertEqual(self.plan.trainingszeit_rest_gesamt(55_000), 10_000)
+        self.assertEqual(self.plan.trainingszeit_rest_gesamt(55_000, self.mein_filter), -5_000)
+        self.assertEqual(self.plan.trainingszeit_rest_gesamt(65_000), 0)
+        self.assertEqual(self.plan.trainingszeit_rest_gesamt(65_000, self.mein_filter), -15_000)
+
 
     def test_trainingszeit_dauer_aktueller_inhalt(self):
         self.assertEqual(self.plan.trainingszeit_dauer_aktueller_inhalt(0), 0)
