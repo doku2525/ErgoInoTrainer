@@ -15,6 +15,27 @@ class Trainingsprogramm:
     ergebnisse: tuple = field(default_factory=tuple)
     unendlich: bool = field(default=True)
 
+    def countdown_aktueller_inhalt(self, zeit_in_ms: int) -> int:
+        """Liefert die Zeit in Sekunden. Normalerweise rechnet die Klasse in Millisekunden, aber da das Ergebniss
+        nur fuer die Ausgabe auf dem Bildschrim benutzt wird, ist der Rueckgabewert nicht in Millis, sondern Sekunden"""
+        aktueller_inhalt = self.fuehre_aus(zeit_in_ms)
+        zeit = aktueller_inhalt.dauer() - self.trainingszeit_dauer_aktueller_inhalt(zeit_in_ms)
+        minus_number = -1 if aktueller_inhalt.typ in [trainingsinhalt.BelastungTypen.COUNTDOWN] else 1
+        if zeit == aktueller_inhalt.dauer():
+            return int(zeit / 1000) * minus_number
+        if zeit < 0:     # Verhindert, dass am Ende des Trainings 2, 1, 1, 0, -1 gezaehlt wird
+                return abs(int(zeit / 1000)) * minus_number
+        else:
+            return (int(zeit / 1000) + 1) * minus_number
+
+    @property
+    def zeit_trainings_programm(self) -> int:
+        raise NotImplementedError
+
+    @property
+    def countdown_aktueller_timer(self) -> int:
+        raise NotImplementedError
+
     def fuehre_aus(self, zeit_in_ms: int) -> Trainingsinhalt:
         """Fuehre den der Zeit entsprechenden Trainingsinhalt aus"""
         return self.inhalte[self.finde_index_des_aktuellen_inhalts(zeit_in_ms)]

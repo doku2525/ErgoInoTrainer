@@ -3,7 +3,10 @@ from unittest.mock import Mock, patch
 from collections import namedtuple
 import datetime
 from datetime import datetime
+from typing import Type, cast
+
 from src.classes.viewdatenmodell import ViewDatenmodell
+from src.classes.controllerstatus import ControllerStatus
 
 
 class MockControllerStatus:
@@ -28,6 +31,7 @@ class MockControllerStatus:
         self.gestoppte_zeit = Mock()
         self.gestoppte_zeit.als_ms.return_value = 10000
         self.modell.trainingsprogramm.trainingszeit_dauer_aktueller_inhalt.return_value = 30000
+        self.modell.trainingsprogramm.countdown_aktueller_inhalt.return_value = 10
         self.modell.trainingsprogramm.berechne_distanze_pro_fertige_inhalte.return_value = [40, 20, 40]
         # Mock für inhalte
         # self.modell.trainingsprogramm.inhalte = Mock()
@@ -46,8 +50,6 @@ class MockControllerStatus:
         self.modell.puls_device.batterie_level = 90
 
         # Mockwerte fuer update_daten_modell
-        self.berechne_zeit_timer = Mock()
-        self.berechneter_zeit_timer = 20000
         self.gestoppte_zeit.als_s.return_value = 3*60
         self.pause_nach_aktuellem_inhalt = False
         self.modell.trainingsprogramm.unendlich = True
@@ -65,7 +67,7 @@ class test_ViewDatenmodell(TestCase):
 
     def test_berechne_ergometer_daten(self):
         obj = ViewDatenmodell()
-        mock_status = MockControllerStatus()
+        mock_status = (cast(ControllerStatus, MockControllerStatus()))
         result = obj.berechne_ergometer_daten()
         self.assertEqual(obj, result)
         result = obj.berechne_ergometer_daten(mock_status)
@@ -83,7 +85,7 @@ class test_ViewDatenmodell(TestCase):
 
     def test_berechne_intervall_daten(self):
         obj = ViewDatenmodell()
-        mock_status = MockControllerStatus()
+        mock_status = (cast(ControllerStatus, MockControllerStatus()))
         result = obj.berechne_intervall_daten()
         self.assertEqual(obj, result)
         result = obj.berechne_intervall_daten(mock_status)
@@ -101,7 +103,7 @@ class test_ViewDatenmodell(TestCase):
 
     def test_berechne_puls_daten(self):
         obj = ViewDatenmodell()
-        mock_status = MockControllerStatus()
+        mock_status = (cast(ControllerStatus, MockControllerStatus()))
         result = obj.berechne_puls_daten()
         self.assertEqual(obj, result)
         result = obj.berechne_puls_daten(mock_status)
@@ -112,7 +114,7 @@ class test_ViewDatenmodell(TestCase):
 
     def test_update_daten_modell(self):
         obj = ViewDatenmodell()
-        mock_status = MockControllerStatus()
+        mock_status = (cast(ControllerStatus, MockControllerStatus()))
         result = obj.update_daten_modell()
         self.assertEqual(obj, result)
         result = obj.update_daten_modell(mock_status)
@@ -135,7 +137,7 @@ class test_ViewDatenmodell(TestCase):
     def test_erzeuge_log_string(self, mock_datetime):
         mock_datetime.now.return_value = datetime(2024, 11, 27, 12, 13, 14)
         obj = ViewDatenmodell()
-        mock_status = MockControllerStatus()
+        mock_status = (cast(ControllerStatus, MockControllerStatus()))
         result = obj.erzeuge_log_string()
         self.assertEqual(22, len(result.split("\t")))
         obj = ViewDatenmodell()

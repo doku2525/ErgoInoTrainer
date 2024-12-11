@@ -105,31 +105,32 @@ class ViewDatenmodell:
             'herz_batterielevel': status.modell.puls_device.batterie_level}) if status is not None else self
 
     def update_daten_modell(self, status: ControllerStatus = None) -> ViewDatenmodell:
-        def berechne_zeit_timer() -> int:
-            # Gibt die Zeit in Sekunden zurueck
-            berechnete_zeit = int(status.modell.trainingsprogramm.fuehre_aus(status.gestoppte_zeit.als_ms()).dauer() -
-                                  status.modell.trainingsprogramm.
-                                  trainingszeit_dauer_aktueller_inhalt(status.gestoppte_zeit.als_ms()))
-            if berechnete_zeit == status.modell.trainingsprogramm.fuehre_aus(status.gestoppte_zeit.als_ms()).dauer():
-                return int(berechnete_zeit / 1000)
-            if berechnete_zeit < 0:     # Verhindert, dass am Ende des Trainings 2, 1, 1, 0, -1 gezaehlt wird
-                return int(berechnete_zeit / 1000)
-            return int(berechnete_zeit / 1000) + 1
+        # def berechne_zeit_timer() -> int:
+        #     # Gibt die Zeit in Sekunden zurueck
+        #     berechnete_zeit = int(status.modell.trainingsprogramm.fuehre_aus(status.gestoppte_zeit.als_ms()).dauer() -
+        #                           status.modell.trainingsprogramm.
+        #                           trainingszeit_dauer_aktueller_inhalt(status.gestoppte_zeit.als_ms()))
+        #     if berechnete_zeit == status.modell.trainingsprogramm.fuehre_aus(status.gestoppte_zeit.als_ms()).dauer():
+        #         return int(berechnete_zeit / 1000)
+        #     if berechnete_zeit < 0:     # Verhindert, dass am Ende des Trainings 2, 1, 1, 0, -1 gezaehlt wird
+        #         return int(berechnete_zeit / 1000)
+        #     return int(berechnete_zeit / 1000) + 1
 
         if status is None:
             return self
 
-        berechneter_zeit_timer = berechne_zeit_timer()
+        # berechneter_zeit_timer = berechne_zeit_timer()
         result = (self.
                   berechne_ergometer_daten(status=status).
                   berechne_intervall_daten(status=status).
                   berechne_puls_daten(status=status))
         return replace(result, **{
             'zeit_gesamt': str(datetime.timedelta(seconds=int(status.gestoppte_zeit.als_s()))),
-            'zeit_timer': abs(berechneter_zeit_timer),
-            'zeit_timer_string': (str(
-                datetime.timedelta(seconds=abs(berechneter_zeit_timer))) +
-                ('\u2297' if status.pause_nach_aktuellem_inhalt else '')),
+            'zeit_timer': status.modell.trainingsprogramm.countdown_aktueller_inhalt(status.gestoppte_zeit.als_ms()),
+            'zeit_timer_string': (
+                    str(datetime.timedelta(seconds=status.modell.trainingsprogramm.countdown_aktueller_inhalt(
+                        status.gestoppte_zeit.als_ms()))) +
+                    ('\u2297' if status.pause_nach_aktuellem_inhalt else '')),
             'werte_und_power': status.modell.zonen.mergeWerteAndPower(),
             'device_werte': str(status.modell.board.device_daten.__dict__),
             'trainings_name': status.modell.trainingsprogramm.name,

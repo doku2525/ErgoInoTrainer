@@ -157,7 +157,6 @@ class test_Trainingsprogramm(TestCase):
         self.assertEqual(self.plan.trainingszeit_rest_gesamt(65_000), 0)
         self.assertEqual(self.plan.trainingszeit_rest_gesamt(65_000, self.mein_filter), -15_000)
 
-
     def test_trainingszeit_dauer_aktueller_inhalt(self):
         self.assertEqual(self.plan.trainingszeit_dauer_aktueller_inhalt(0), 0)
         self.assertEqual(self.plan.trainingszeit_dauer_aktueller_inhalt(5000), 5000)
@@ -166,6 +165,24 @@ class test_Trainingsprogramm(TestCase):
         self.assertEqual(self.plan.trainingszeit_dauer_aktueller_inhalt(10000), 10000)
         self.assertEqual(self.plan.trainingszeit_dauer_aktueller_inhalt(10001), 1)
         self.assertEqual(self.plan.trainingszeit_dauer_aktueller_inhalt(45000), 5000)
+
+    def test_countdown_aktueller_inhalt(self):
+        self.assertEqual(self.plan.countdown_aktueller_inhalt(0), 10)
+        self.assertEqual(self.plan.countdown_aktueller_inhalt(1), 10)
+        self.assertEqual(self.plan.countdown_aktueller_inhalt(5000), 6)
+        self.assertEqual(self.plan.countdown_aktueller_inhalt(5001), 5)
+        self.plan = self.plan_mit_fuenf
+        self.assertEqual(self.plan.countdown_aktueller_inhalt(0), 10)
+        self.assertEqual(self.plan.countdown_aktueller_inhalt(10000), 1)
+        self.assertEqual(self.plan.countdown_aktueller_inhalt(10001), 10)
+        self.assertEqual(self.plan.countdown_aktueller_inhalt(45000), 6)
+        self.assertEqual(self.plan.countdown_aktueller_inhalt(45001), 5)
+        self.plan = self.plan_mit_countdown
+        self.assertEqual(self.plan_mit_countdown.fuehre_aus(0).typ, trainingsinhalt.BelastungTypen.COUNTDOWN)
+        self.assertEqual(self.plan.countdown_aktueller_inhalt(0), -15)
+        self.assertEqual(self.plan.countdown_aktueller_inhalt(5001), -10)
+        self.assertEqual(self.plan.countdown_aktueller_inhalt(15000), -1)
+        self.assertEqual(self.plan.countdown_aktueller_inhalt(15001), 10)
 
     def test_trainingszeit_beendeter_inhalte(self):
         self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(0), 0)
