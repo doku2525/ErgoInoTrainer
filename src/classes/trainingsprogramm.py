@@ -32,10 +32,6 @@ class Trainingsprogramm:
     def zeit_trainings_programm(self) -> int:
         raise NotImplementedError
 
-    @property
-    def countdown_aktueller_timer(self) -> int:
-        raise NotImplementedError
-
     def fuehre_aus(self, zeit_in_ms: int) -> Trainingsinhalt:
         """Fuehre den der Zeit entsprechenden Trainingsinhalt aus"""
         return self.inhalte[self.finde_index_des_aktuellen_inhalts(zeit_in_ms)]
