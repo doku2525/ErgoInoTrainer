@@ -5,7 +5,7 @@ from src.classes import trainingsinhalt
 from src.classes.trainingsprogramm import (Trainingsprogramm, erzeuge_trainingsprogramm_G1,
                                            erzeuge_trainingsprogramm_G2Intervall, erzeuge_trainingsprogramm_Tabata,
                                            erzeuge_trainingsprogramm_G1_mit_sprints, erzeuge_trainingsprogramm_K3)
-from src.classes.trainingsinhalt import Dauermethode
+from src.classes.trainingsinhalt import Dauermethode, CountdownBisStart
 import copy
 
 
@@ -14,7 +14,10 @@ class test_Trainingsprogramm(TestCase):
         liste = [
             Dauermethode("G1", 10000, 100, 30, trainingsinhalt.BelastungTypen.Erholung)
         ]
+        liste_mit_countdown = [CountdownBisStart()] + (liste * 5)
         self.plan = Trainingsprogramm("G1", liste)
+        self.plan_mit_fuenf = Trainingsprogramm("G1", liste * 5)
+        self.plan_mit_countdown = Trainingsprogramm("G1", liste_mit_countdown)
 
     def test_fuehre_aus(self):
         self.plan = replace(self.plan, inhalte=self.plan.inhalte * 5)
@@ -31,7 +34,7 @@ class test_Trainingsprogramm(TestCase):
         self.assertEqual(self.plan.fuehre_aus(50001).name, "G4")
 
     def test_verarbeite_messwerte(self):
-        self.plan = replace(self.plan, inhalte=self.plan.inhalte * 5)
+        self.plan = self.plan_mit_fuenf
         self.assertEqual(self.plan.verarbeite_messwerte(0, 5).ergebnisse, (5, ))
         self.assertEqual(self.plan.verarbeite_messwerte(5000, 5).ergebnisse, (5, ))
         self.assertEqual(self.plan.verarbeite_messwerte(10000, 10).ergebnisse, (10, ))
@@ -42,7 +45,7 @@ class test_Trainingsprogramm(TestCase):
 
     def test_verarbeite_messwerte_falsche(self):
         # Macht in der Praxis keinen Sinn und sollte von der Programmlogik der Aufrufenden Funktion abgefangen werden
-        self.plan = replace(self.plan, inhalte=self.plan.inhalte * 5)
+        self.plan = self.plan_mit_fuenf
         self.assertEqual(self.plan.verarbeite_messwerte(20001, 5).ergebnisse, (5, ))
         self.plan = self.plan.verarbeite_messwerte(20001, 5)
         self.assertEqual(self.plan.verarbeite_messwerte(20001, 5).ergebnisse, (5, 5))
@@ -52,7 +55,7 @@ class test_Trainingsprogramm(TestCase):
         self.assertEqual(self.plan.verarbeite_messwerte(10001, 10).ergebnisse, (5, 5, 10))
 
     def test_berechne_distanze_pro_fertige_inhalte(self):
-        self.plan = replace(self.plan, inhalte=self.plan.inhalte * 5)
+        self.plan = self.plan_mit_fuenf
         self.plan = self.plan.verarbeite_messwerte(0, 5)
         self.assertEqual(self.plan.berechne_distanze_pro_fertige_inhalte(), ())
         self.plan = self.plan.verarbeite_messwerte(5000, 5)
@@ -65,7 +68,7 @@ class test_Trainingsprogramm(TestCase):
         self.assertEqual(self.plan.berechne_distanze_pro_fertige_inhalte(), (10, 5))
 
     def test_berechne_distanze_aktueller_inhalt(self):
-        self.plan = replace(self.plan, inhalte=self.plan.inhalte * 5)
+        self.plan = self.plan_mit_fuenf
         self.plan = self.plan.verarbeite_messwerte(0, 5)
         self.assertEqual(self.plan.berechne_distanze_aktueller_inhalt(), 5)
         self.plan = self.plan.verarbeite_messwerte(5000, 5)
@@ -82,7 +85,7 @@ class test_Trainingsprogramm(TestCase):
         self.assertEqual(self.plan.berechne_distanze_aktueller_inhalt(), 2)
 
     def test_fuehre_naechstes_aus(self):
-        self.plan = replace(self.plan, inhalte=self.plan.inhalte * 5)
+        self.plan = self.plan_mit_fuenf
         for index, element in enumerate(self.plan.inhalte):
             self.plan.inhalte[index] = copy.copy(element)
             self.plan.inhalte[index] = replace(self.plan.inhalte[index], name=f"G{index}")
@@ -100,8 +103,23 @@ class test_Trainingsprogramm(TestCase):
 
     def test_trainingszeit_dauer_gesamt(self):
         self.assertEqual(self.plan.trainingszeit_dauer_gesamt(), 10000)
-        self.plan = replace(self.plan, inhalte=self.plan.inhalte * 5)
+        self.plan = self.plan_mit_fuenf
         self.assertEqual(self.plan.trainingszeit_dauer_gesamt(), 50000)
+
+    def test_trainingszeit_dauer_gesamt_mit_filter(self):
+        mein_filter = lambda ti: ti.typ != trainingsinhalt.BelastungTypen.COUNTDOWN
+        self.assertEqual(self.plan.trainingszeit_dauer_gesamt(filter_funktion=mein_filter), 10000)
+        self.plan = self.plan_mit_fuenf
+        self.assertEqual(self.plan.trainingszeit_dauer_gesamt(filter_funktion=mein_filter), 50000)
+        self.plan = self.plan_mit_fuenf
+        self.assertEqual(self.plan.trainingszeit_dauer_gesamt(filter_funktion=mein_filter), 50000)
+
+    def test_trainingszeit_dauer_gesamt_mit_filter(self):
+        mein_filter = lambda ti: ti.typ != trainingsinhalt.BelastungTypen.COUNTDOWN
+        self.plan = self.plan_mit_countdown
+        self.assertEqual(self.plan.trainingszeit_dauer_gesamt(), 65_000)
+        self.plan = self.plan_mit_countdown
+        self.assertEqual(self.plan.trainingszeit_dauer_gesamt(filter_funktion=mein_filter), 50_000)
 
     def test_trainingszeit_rest_gesamt(self):
         self.assertEqual(self.plan.trainingszeit_rest_gesamt(0), 10000)
@@ -109,14 +127,14 @@ class test_Trainingsprogramm(TestCase):
         self.assertEqual(self.plan.trainingszeit_rest_gesamt(10000), 0)
         self.assertEqual(self.plan.trainingszeit_rest_gesamt(10001), -1)
         self.assertEqual(self.plan.trainingszeit_rest_gesamt(-1000), 11000)
-        self.plan = replace(self.plan, inhalte=self.plan.inhalte * 5)
+        self.plan = self.plan_mit_fuenf
         self.assertEqual(self.plan.trainingszeit_rest_gesamt(0), 50000)
         self.assertEqual(self.plan.trainingszeit_rest_gesamt(10000), 40000)
 
     def test_trainingszeit_dauer_aktueller_inhalt(self):
         self.assertEqual(self.plan.trainingszeit_dauer_aktueller_inhalt(0), 0)
         self.assertEqual(self.plan.trainingszeit_dauer_aktueller_inhalt(5000), 5000)
-        self.plan = replace(self.plan, inhalte=self.plan.inhalte * 5)
+        self.plan = self.plan_mit_fuenf
         self.assertEqual(self.plan.trainingszeit_dauer_aktueller_inhalt(0), 0)
         self.assertEqual(self.plan.trainingszeit_dauer_aktueller_inhalt(10000), 10000)
         self.assertEqual(self.plan.trainingszeit_dauer_aktueller_inhalt(10001), 1)
@@ -126,7 +144,7 @@ class test_Trainingsprogramm(TestCase):
         self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(0), 0)
         self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(10000), 0)
         self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(10001), 0)
-        self.plan = replace(self.plan, inhalte=self.plan.inhalte * 5)
+        self.plan = self.plan_mit_fuenf
         self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(0), 0)
         self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(10000), 0)
         self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(10001), 10000)
@@ -154,7 +172,7 @@ class test_Trainingsprogramm(TestCase):
         self.assertEqual(self.plan.finde_index_des_aktuellen_inhalts(0), 0)
         self.assertEqual(self.plan.finde_index_des_aktuellen_inhalts(10000), 0)
         self.assertEqual(self.plan.finde_index_des_aktuellen_inhalts(10001), 0)
-        self.plan = replace(self.plan, inhalte=self.plan.inhalte * 5)
+        self.plan = self.plan_mit_fuenf
         self.assertEqual(self.plan.finde_index_des_aktuellen_inhalts(10000), 0)
         self.assertEqual(self.plan.finde_index_des_aktuellen_inhalts(10001), 1)
         self.assertEqual(self.plan.finde_index_des_aktuellen_inhalts(15001), 1)
@@ -164,7 +182,7 @@ class test_Trainingsprogramm(TestCase):
         self.assertEqual(self.plan.finde_index_des_aktuellen_inhalts(50001), 4)
 
     def test_ist_letzter_inhalt(self):
-        self.plan = replace(self.plan, inhalte=self.plan.inhalte * 5)
+        self.plan = self.plan_mit_fuenf
         self.assertFalse(self.plan.ist_letzter_inhalt(10000))
         self.assertFalse(self.plan.ist_letzter_inhalt(10001))
         self.assertFalse(self.plan.ist_letzter_inhalt(15001))

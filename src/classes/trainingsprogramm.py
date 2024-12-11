@@ -49,7 +49,7 @@ class Trainingsprogramm:
 
     def trainingszeit_dauer_gesamt(self,
                                    filter_funktion: Callable[[Trainingsinhalt], bool] = lambda ti: True) -> int:
-        return sum([element.dauer() for element in self.inhalte if filter_funktion])
+        return sum([element.dauer() for element in self.inhalte if filter_funktion(element)])
 
     def trainingszeit_rest_gesamt(self, zeit_in_ms: int) -> int:
         return self.trainingszeit_dauer_gesamt() - zeit_in_ms
