@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass, field, replace
-from typing import TYPE_CHECKING
+from typing import Callable, TYPE_CHECKING
 
 import src.classes.trainingsinhalt as trainingsinhalt
 
@@ -47,8 +47,9 @@ class Trainingsprogramm:
         else:
             return self.inhalte[self.finde_index_des_aktuellen_inhalts(zeit_in_ms)]
 
-    def trainingszeit_dauer_gesamt(self) -> int:
-        return sum([element.dauer() for element in self.inhalte])
+    def trainingszeit_dauer_gesamt(self,
+                                   filter_funktion: Callable[[Trainingsinhalt], bool] = lambda ti: True) -> int:
+        return sum([element.dauer() for element in self.inhalte if filter_funktion])
 
     def trainingszeit_rest_gesamt(self, zeit_in_ms: int) -> int:
         return self.trainingszeit_dauer_gesamt() - zeit_in_ms
