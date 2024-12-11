@@ -16,9 +16,11 @@ class Trainingsprogramm:
     unendlich: bool = field(default=True)
 
     def fuehre_aus(self, zeit_in_ms: int) -> Trainingsinhalt:
+        """Fuehre den der Zeit entsprechenden Trainingsinhalt aus"""
         return self.inhalte[self.finde_index_des_aktuellen_inhalts(zeit_in_ms)]
 
     def verarbeite_messwerte(self, zeit_in_ms: int, distanze: int) -> Trainingsprogramm:
+        # TODO filter_func: Hier vielleicht notwendig! Oder mit Vordefinierten Filtern arbeiten??
         def bedingung() -> bool:
             return self.finde_index_des_aktuellen_inhalts(zeit_in_ms) > len(self.ergebnisse)-1
         return replace(self, ergebnisse=(self.ergebnisse if bedingung() else self.ergebnisse[0:-1]) + (distanze,))
@@ -56,9 +58,14 @@ class Trainingsprogramm:
         return self.trainingszeit_dauer_gesamt(filter_funktion=filter_funktion) - zeit_in_ms
 
     def trainingszeit_dauer_aktueller_inhalt(self, zeit_in_ms: int) -> int:
+        """Zeit in Millisekunden, die seit Beginn des aktuellen Inhalts begonnen hat."""
         return zeit_in_ms - self.trainingszeit_beendeter_inhalte(zeit_in_ms)
 
     def trainingszeit_beendeter_inhalte(self, zeit_in_ms: int) -> int:
+        # TODO Anstatt mit Indexen koennte man auch einfach eine Liste der noch zu bevorstehenden Inhalte und den
+        #   bereits beendeten Inhalten arbeiten. So kann man nur Inhalte, die nicht gefiltert werden sollen, in die
+        #   Liste der bereits beendeten Inhalte schieben und so die Berechnungen einfacher ohne das umstaendliche
+        #   Hantieren mit Filtern in jeder Funktion.
         aktueller_index = self.finde_index_des_aktuellen_inhalts(zeit_in_ms)
         return sum([element.dauer() for element in self.inhalte[:aktueller_index]])
 
