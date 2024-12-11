@@ -7,6 +7,7 @@ import src.modules.audiomodul as audiomodul
 if TYPE_CHECKING:
     from src.classes.applikationmodel import ApplikationModell
 
+from src.classes.trainingsinhalt import BelastungTypen
 
 """In einigen Funktionen [pause_am_ende_des_aktuellen_inhalts(), neuer_wert_pause_nach_aktuellem_inhalt()]
 wird ein Zeitwert in Millisekunden benutzt, innerhalb dem eine Schleife mindestens einmal durchgelaufen sein sollte.
@@ -36,6 +37,9 @@ class ControllerStatus:
         self.gestoppte_zeit = self.modell.akuelle_zeit()
         return self
 
+    def pruefe_logging_status(self) -> bool:
+        return self.modell.trainingsprogramm.fuehre_aus(self.gestoppte_zeit.als_ms()).logging
+
     def es_ist_zeit_fuer_update(self) -> bool:
         # !!! Bei (not gestoppte_zeit > self.zeit_fuer_naechstes_update) manchmal 2 Zeiten pro sek im Timer
         # Z.B. 9 8 8 6 5 4 4 2  TODO Den Kommentar irgendwann loeschen
@@ -56,6 +60,9 @@ class ControllerStatus:
                                                                name=self.werte_nach_trainngsplan[0])
 
     def trainingsende_pause_machen(self) -> bool:
+        # TODO der < - Vergleich sollte irgendwann evtl. durch die Zeitfunktion aus trainingsprogramm ersetzt werden
+        # trainingszeit_dauer_gesamt(filter) < laufzeit_trainings_programm(self.gestoppte_zeit.als_ms())
+        mein_filter = lambda x: x.typ != BelastungTypen.COUNTDOWN
         return (self.es_ist_zeit_fuer_update() and
                 self.modell.trainingsprogramm.trainingszeit_dauer_gesamt() < self.gestoppte_zeit.als_ms() and
                 not self.modell.trainingsprogramm.unendlich)
@@ -67,7 +74,7 @@ class ControllerStatus:
         self.pause_nach_aktuellem_inhalt = self.neuer_wert_pause_nach_aktuellem_inhalt()
         return (self.es_ist_zeit_fuer_update() and
                 self.pause_nach_aktuellem_inhalt and
-                self.modell.trainingsprogramm.trainingszeit_dauer_aktueller_inhalt(
+                self.modell.trainingsprogramm.trainingszeit_dauer_aktueller_inhalt_ohne_filter(
                     self.gestoppte_zeit.als_ms()) < ZEIT_DELTA)
 
     def neuer_wert_pause_nach_aktuellem_inhalt(self) -> bool:
@@ -77,7 +84,7 @@ class ControllerStatus:
         return (self.pause_nach_aktuellem_inhalt |
                 (not self.modell.trainingsprogramm.unendlich and
                  self.modell.trainingsprogramm.ist_letzter_inhalt(self.gestoppte_zeit.als_ms()) and
-                 self.modell.trainingsprogramm.trainingszeit_dauer_aktueller_inhalt(
+                 self.modell.trainingsprogramm.trainingszeit_dauer_aktueller_inhalt_ohne_filter(
                      self.gestoppte_zeit.als_ms()) > ZEIT_DELTA))
 
     def update_ergometer(self) -> None:
@@ -93,6 +100,7 @@ class ControllerStatus:
                                                 busy_status=pygame.mixer.music.get_busy())
         audiomodul.AUDIOOBJEKT_AKTIVE, self.audio_playlist, (audiofunc, args) = result
         # Wenn Trainingszeit abgelaufen ist, lasse das letzte Lied auslaufen.
+        # TODO Siehe Kommentar in trainingsende_pause_machen()
         if self.gestoppte_zeit.als_ms() >= self.modell.trainingsprogramm.trainingszeit_dauer_gesamt():
             return None
         audiofunc(**args)

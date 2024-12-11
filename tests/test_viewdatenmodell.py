@@ -31,6 +31,7 @@ class MockControllerStatus:
         self.gestoppte_zeit = Mock()
         self.gestoppte_zeit.als_ms.return_value = 10000
         self.modell.trainingsprogramm.trainingszeit_dauer_aktueller_inhalt.return_value = 30000
+        self.modell.trainingsprogramm.laufzeit_trainings_programm.return_value = 180
         self.modell.trainingsprogramm.countdown_aktueller_inhalt.return_value = 10
         self.modell.trainingsprogramm.berechne_distanze_pro_fertige_inhalte.return_value = [40, 20, 40]
         # Mock für inhalte

@@ -24,13 +24,28 @@ class Trainingsprogramm:
         if zeit == aktueller_inhalt.dauer():
             return int(zeit / 1000) * minus_number
         if zeit < 0:     # Verhindert, dass am Ende des Trainings 2, 1, 1, 0, -1 gezaehlt wird
-                return abs(int(zeit / 1000)) * minus_number
+            return abs(int(zeit / 1000)) * minus_number
         else:
             return (int(zeit / 1000) + 1) * minus_number
 
-    @property
-    def zeit_trainings_programm(self) -> int:
-        raise NotImplementedError
+    def laufzeit_trainings_programm_in_ms(self, zeit_in_ms: int,
+                                          filter_funktion: Callable[[Trainingsinhalt], bool] = lambda ti: False) -> int:
+        """Funktion liefert die aktuelle Laufzeit des Trainings in Millisekunden.
+        Inhalte, die in der filter_funktion True ergeben, werden abgezogen"""
+        # TODO Wenn der gefilterte Inhalt am Ende des Trainings steht und die Uhr danch weiterlaeuft. Bleibt die
+        #   auf der Zeit davor stehen. siehe Unittest!!!
+        #   Siehe auch das Verhalten von trainingszeit_beendeter_inhalte().
+        aktueller_inhalt = self.fuehre_aus(zeit_in_ms)
+        summe_alter_countdowns = self.trainingszeit_beendeter_inhalte(zeit_in_ms, filter_funktion)
+        if filter_funktion(aktueller_inhalt):
+            return zeit_in_ms - self.trainingszeit_dauer_aktueller_inhalt(zeit_in_ms)
+        return zeit_in_ms - summe_alter_countdowns
+
+    def laufzeit_trainings_programm(self, zeit_in_ms: int,
+                                    filter_funktion: Callable[[Trainingsinhalt], bool] = lambda ti: False) -> int:
+        """Funktion liefert die aktuelle Laufzeit des Trainings in Sekunden.
+        Inhalte, die in der filter_funktion True ergeben, werden abgezogen"""
+        return int(self.laufzeit_trainings_programm_in_ms(zeit_in_ms, filter_funktion) / 1000)
 
     def fuehre_aus(self, zeit_in_ms: int) -> Trainingsinhalt:
         """Fuehre den der Zeit entsprechenden Trainingsinhalt aus"""
@@ -74,17 +89,25 @@ class Trainingsprogramm:
                                   filter_funktion: Callable[[Trainingsinhalt], bool] = lambda ti: True) -> int:
         return self.trainingszeit_dauer_gesamt(filter_funktion=filter_funktion) - zeit_in_ms
 
-    def trainingszeit_dauer_aktueller_inhalt(self, zeit_in_ms: int) -> int:
+    def trainingszeit_dauer_aktueller_inhalt(self, zeit_in_ms: int,
+                                        filter_funktion: Callable[[Trainingsinhalt], bool] = lambda ti: True) -> int:
         """Zeit in Millisekunden, die seit Beginn des aktuellen Inhalts begonnen hat."""
-        return zeit_in_ms - self.trainingszeit_beendeter_inhalte(zeit_in_ms)
+        return zeit_in_ms - self.trainingszeit_beendeter_inhalte(zeit_in_ms, filter_funktion)
 
-    def trainingszeit_beendeter_inhalte(self, zeit_in_ms: int) -> int:
-        # TODO Anstatt mit Indexen koennte man auch einfach eine Liste der noch zu bevorstehenden Inhalte und den
+    def trainingszeit_dauer_aktueller_inhalt_ohne_filter(self, zeit_in_ms: int) -> int:
+        """Zeit in Millisekunden, die seit Beginn des aktuellen Inhalts begonnen hat."""
+        return zeit_in_ms - self.trainingszeit_beendeter_inhalte(zeit_in_ms, lambda x: True)
+
+    def trainingszeit_beendeter_inhalte(self, zeit_in_ms: int,
+                                        filter_funktion: Callable[[Trainingsinhalt], bool] = lambda ti: True) -> int:
+        # Anstatt mit Indexen koennte man auch einfach eine Liste der noch zu bevorstehenden Inhalte und den
         #   bereits beendeten Inhalten arbeiten. So kann man nur Inhalte, die nicht gefiltert werden sollen, in die
         #   Liste der bereits beendeten Inhalte schieben und so die Berechnungen einfacher ohne das umstaendliche
         #   Hantieren mit Filtern in jeder Funktion.
+        # TODO Siehe Tests. Der Trainingsinhalt am Ende der Gesamtliste wird nicht mitgezaehlt.
+        #   Z.B.: 5x10s => Ergibt 40s, auch wenn die Zeit schon am Trainingsende vorbei bei 51s ist.
         aktueller_index = self.finde_index_des_aktuellen_inhalts(zeit_in_ms)
-        return sum([element.dauer() for element in self.inhalte[:aktueller_index]])
+        return sum([element.dauer() for element in self.inhalte[:aktueller_index] if filter_funktion(element)])
 
     def berechne_distanze_gesamt(self) -> int:
         return sum([element.distanze() for element in self.inhalte])
@@ -105,6 +128,14 @@ class Trainingsprogramm:
 
     def ist_letzter_inhalt(self, zeit_in_ms: int) -> bool:
         return self.finde_index_des_aktuellen_inhalts(zeit_in_ms) == (len(self.inhalte) - 1)
+
+
+def filter_is_countdown(inhalt: trainingsinhalt.Trainingsinhalt) -> bool:
+    return inhalt.typ in [trainingsinhalt.BelastungTypen.COUNTDOWN]
+
+
+def filter_is_not_countdown(inhalt: trainingsinhalt.Trainingsinhalt) -> bool:
+    return not filter_is_countdown(inhalt)
 
 
 def erzeuge_trainingsprogramm_G1(dauer_in_minuten: int, pwm: int, cad: int,
@@ -138,6 +169,7 @@ def erzeuge_trainingsprogramm_Tabata(pwm: tuple[int, int], cad: tuple[int, int],
     to_millis = 60 * 1000
 
     warmfahren = [
+        trainingsinhalt.CountdownBisStart(),
         trainingsinhalt.Dauermethode("Warmfahren", warmfahrzeit * to_millis, cad[0], pwm[0],
                                      trainingsinhalt.BelastungTypen.G1),
     ]

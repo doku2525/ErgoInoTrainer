@@ -85,8 +85,10 @@ class Zonen:
             return 60.0 * self.calcPowerGesamt() / self.tachoWerte.zeit
 
     def mergeWerteAndPower(self) -> dict:
+        """Liefer die Zonen als dict.
+        Da Werte mit Bremse == 0 nur bei Pausen entstehen, koennen sie herausgefiltert werden."""
         return {
             pwm: werte | power
-            for pwm, werte in self.calcWerteProZone().items()
+            for pwm, werte in self.calcWerteProZone().items() if pwm != 0.0
             for power in [self.calcPowerProZone()[pwm]]
         }

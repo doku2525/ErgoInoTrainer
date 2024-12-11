@@ -69,6 +69,8 @@ class test_Audiomodul(TestCase):
         self.assertEqual(0, len(audiomodul.build_playlist(trainingsplan=plan, audio_objekte=audio)))
 
         plan = erzeuge_trainingsprogramm_Tabata(pwm=(1, 3), cad=(100, 100))
+        # TODO Workaround, da Test fuer Tabata ohne Countdown geschrieben wurde
+        plan = replace(plan, inhalte=plan.inhalte[1:])
         audio = self.audio[:1]
         self.assertEqual(8, len(audiomodul.build_playlist(trainingsplan=plan, audio_objekte=audio)))
         for index in range(8):
@@ -76,12 +78,16 @@ class test_Audiomodul(TestCase):
                              audiomodul.build_playlist(trainingsplan=plan, audio_objekte=audio)[index][0])
 
         plan = erzeuge_trainingsprogramm_Tabata(pwm=(1, 3), cad=(100, 100))
+        # TODO Workaround, da Test fuer Tabata ohne Countdown geschrieben wurde
+        plan = replace(plan, inhalte=plan.inhalte[1:])
         print(f"\nAudiomodule: {audiomodul.MEINE_AUDIO_OBJEKTE}")
         audio = (self.audio[:1] +
                  [replace(audiomodul.MEINE_AUDIO_OBJEKTE[0], trainingsinhalt=['Ausfahren'])])
         self.assertEqual(9, len(audiomodul.build_playlist(trainingsplan=plan, audio_objekte=audio)))
 
         plan = erzeuge_trainingsprogramm_Tabata(pwm=(1, 3), cad=(100, 100))
+        # TODO Workaround, da Test fuer Tabata ohne Countdown geschrieben wurde
+        plan = replace(plan, inhalte=plan.inhalte[1:])
         audio = (audiomodul.MEINE_AUDIO_OBJEKTE[:1] +
                  [replace(replace(audiomodul.MEINE_AUDIO_OBJEKTE[0], trainingsinhalt=['Ausfahren']), zeit_start=0),
                   replace(replace(audiomodul.MEINE_AUDIO_OBJEKTE[0], trainingsinhalt=['Warmfahren']), zeit_start=0),
@@ -94,6 +100,8 @@ class test_Audiomodul(TestCase):
 
     def test_play_audio_schedule_player_ungeladen(self):
         plan = erzeuge_trainingsprogramm_Tabata(pwm=(1, 3), cad=(100, 100))
+        # TODO Workaround, da Test fuer Tabata ohne Countdown geschrieben wurde
+        plan = replace(plan, inhalte=plan.inhalte[1:])
         audio = self.audio
         playlist = audiomodul.build_playlist(trainingsplan=plan, audio_objekte=audio)[1:-1]
         self.assertEqual(8, len(playlist))

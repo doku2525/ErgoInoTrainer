@@ -2,6 +2,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from dataclasses import dataclass, field, replace
 import datetime
+import src.classes.trainingsprogramm as tprog
+from src.classes.trainingsinhalt import BelastungTypen
+
 if TYPE_CHECKING:
     from src.classes.controllerstatus import ControllerStatus
 
@@ -60,9 +63,11 @@ class ViewDatenmodell:
             'cad_differenz': status.modell.ergo.lese_cadence() - status.werte_nach_trainngsplan[2],
             'pwm_wert': status.berechne_pwm_wert() / 100.0,
             'distanze': status.modell.ergo.lese_distance(),
+            # TODO status.gestoppte_zeit.als_ms() durch Funktion aus trainingsprogramm ersetzen.
             'distanze_am_ziel': status.modell.ergo.calc_distanze_am_ende(status.gestoppte_zeit.als_ms(),
                                                                          status.modell.trainingsprogramm.
-                                                                         trainingszeit_dauer_gesamt()),
+                                                                         trainingszeit_dauer_gesamt(
+                                                                             tprog.filter_is_not_countdown)),
             # TODO calc_power_index so schreiben, dass Ergometer gleich die richtigen Werte bekommt ohne Argument
             'power_aktuell': status.modell.ergo.calc_power_index(status.berechne_pwm_wert(), 2),
             'power_gesamt': status.modell.zonen.calcPowerGesamt(),
@@ -105,38 +110,34 @@ class ViewDatenmodell:
             'herz_batterielevel': status.modell.puls_device.batterie_level}) if status is not None else self
 
     def update_daten_modell(self, status: ControllerStatus = None) -> ViewDatenmodell:
-        # def berechne_zeit_timer() -> int:
-        #     # Gibt die Zeit in Sekunden zurueck
-        #     berechnete_zeit = int(status.modell.trainingsprogramm.fuehre_aus(status.gestoppte_zeit.als_ms()).dauer() -
-        #                           status.modell.trainingsprogramm.
-        #                           trainingszeit_dauer_aktueller_inhalt(status.gestoppte_zeit.als_ms()))
-        #     if berechnete_zeit == status.modell.trainingsprogramm.fuehre_aus(status.gestoppte_zeit.als_ms()).dauer():
-        #         return int(berechnete_zeit / 1000)
-        #     if berechnete_zeit < 0:     # Verhindert, dass am Ende des Trainings 2, 1, 1, 0, -1 gezaehlt wird
-        #         return int(berechnete_zeit / 1000)
-        #     return int(berechnete_zeit / 1000) + 1
 
         if status is None:
             return self
 
-        # berechneter_zeit_timer = berechne_zeit_timer()
         result = (self.
                   berechne_ergometer_daten(status=status).
                   berechne_intervall_daten(status=status).
                   berechne_puls_daten(status=status))
         return replace(result, **{
-            'zeit_gesamt': str(datetime.timedelta(seconds=int(status.gestoppte_zeit.als_s()))),
+            'zeit_gesamt': str(datetime.timedelta(
+                seconds=status.modell.trainingsprogramm.laufzeit_trainings_programm(
+                    # filter_funktion zieht die Zeit der uninteressanten Inhalte in ab.
+                    status.gestoppte_zeit.als_ms(), filter_funktion=tprog.filter_is_countdown))),
             'zeit_timer': status.modell.trainingsprogramm.countdown_aktueller_inhalt(status.gestoppte_zeit.als_ms()),
             'zeit_timer_string': (
-                    str(datetime.timedelta(seconds=status.modell.trainingsprogramm.countdown_aktueller_inhalt(
-                        status.gestoppte_zeit.als_ms()))) +
+                    str(datetime.timedelta(seconds=abs(
+                        status.modell.trainingsprogramm.countdown_aktueller_inhalt(status.gestoppte_zeit.als_ms())))) +
                     ('\u2297' if status.pause_nach_aktuellem_inhalt else '')),
             'werte_und_power': status.modell.zonen.mergeWerteAndPower(),
             'device_werte': str(status.modell.board.device_daten.__dict__),
             'trainings_name': status.modell.trainingsprogramm.name,
             'trainings_inhalt': status.modell.trainingsprogramm.fuehre_aus(status.gestoppte_zeit.als_ms()).name,
             'trainings_gesamtzeit': (str(
-                datetime.timedelta(milliseconds=status.modell.trainingsprogramm.trainingszeit_dauer_gesamt())) +
+                datetime.timedelta(
+                    milliseconds=status.modell.trainingsprogramm.trainingszeit_dauer_gesamt(
+                        # die Gesamtzeit ohne Countdown
+                        filter_funktion=tprog.filter_is_not_countdown
+                    ))) +
                 (' ∞' if status.modell.trainingsprogramm.unendlich else ' \u2297'))}) if status is not None else self
 
     def erzeuge_log_string(self, join_string: str = "\t") -> str:

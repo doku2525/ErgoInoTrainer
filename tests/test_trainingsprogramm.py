@@ -146,7 +146,7 @@ class test_Trainingsprogramm(TestCase):
         self.assertEqual(self.plan.trainingszeit_rest_gesamt(0, self.mein_filter), 50_000)
         self.assertEqual(self.plan.trainingszeit_rest_gesamt(5000), 60_000)
         self.assertEqual(self.plan.trainingszeit_rest_gesamt(5000, self.mein_filter), 45_000)
-        self.plan = replace(self.plan, inhalte= list(reversed(self.plan_mit_countdown.inhalte)))
+        self.plan = replace(self.plan, inhalte=list(reversed(self.plan_mit_countdown.inhalte)))
         # Jetzt steht Countdown am Ende. Beginnt also nach 50_000
         self.assertEqual(self.plan.trainingszeit_rest_gesamt(0), 65_000)
         self.assertEqual(self.plan.trainingszeit_rest_gesamt(0, self.mein_filter), 50_000)
@@ -184,18 +184,126 @@ class test_Trainingsprogramm(TestCase):
         self.assertEqual(self.plan.countdown_aktueller_inhalt(15000), -1)
         self.assertEqual(self.plan.countdown_aktueller_inhalt(15001), 10)
 
+    def test_laufzeit_trainings_programm_in_ms(self):
+        self.assertNotEqual(self.plan.fuehre_aus(0).typ, trainingsinhalt.BelastungTypen.COUNTDOWN)
+        self.assertEqual(self.plan.laufzeit_trainings_programm_in_ms(0), 0)
+        self.assertEqual(self.plan.laufzeit_trainings_programm_in_ms(1), 1)
+        self.assertEqual(self.plan.laufzeit_trainings_programm_in_ms(5_000), 5_000)
+        self.assertEqual(self.plan.laufzeit_trainings_programm_in_ms(5_001), 5_001)
+        self.assertEqual(self.plan.laufzeit_trainings_programm_in_ms(15_001), 15_001)
+
+        self.plan = self.plan_mit_fuenf
+        self.assertEqual(self.plan.laufzeit_trainings_programm_in_ms(0), 0)
+        self.assertEqual(self.plan.laufzeit_trainings_programm_in_ms(10_000), 10_000)
+        self.assertEqual(self.plan.laufzeit_trainings_programm_in_ms(10_001), 10_001)
+        self.assertEqual(self.plan.laufzeit_trainings_programm_in_ms(45_000), 45_000)
+        self.assertEqual(self.plan.laufzeit_trainings_programm_in_ms(45_001), 45_001)
+        self.assertEqual(self.plan.laufzeit_trainings_programm_in_ms(50_000), 50_000)
+        self.assertEqual(self.plan.laufzeit_trainings_programm_in_ms(51_000), 51_000)
+        self.assertEqual(self.plan.laufzeit_trainings_programm_in_ms(151_000), 151_000)
+
+        self.plan = self.plan_mit_countdown
+        neuer_filter = lambda inhalt: not self.mein_filter(inhalt)
+        self.assertEqual(self.plan_mit_countdown.fuehre_aus(0).typ, trainingsinhalt.BelastungTypen.COUNTDOWN)
+        self.assertEqual(self.plan.laufzeit_trainings_programm_in_ms(0, neuer_filter), 0)
+        self.assertEqual(self.plan.laufzeit_trainings_programm_in_ms(15_000, neuer_filter), 0)
+        self.assertEqual(self.plan.laufzeit_trainings_programm_in_ms(16_000, neuer_filter), 1_000)
+        self.assertEqual(self.plan.laufzeit_trainings_programm_in_ms(65_000, neuer_filter), 50_000)
+        self.assertEqual(self.plan.laufzeit_trainings_programm_in_ms(66_000, neuer_filter), 51_000)
+        self.assertEqual(self.plan.laufzeit_trainings_programm_in_ms(166_000, neuer_filter), 151_000)
+
+        self.plan = replace(self.plan, inhalte=list(reversed(self.plan.inhalte)))
+        neuer_filter = lambda inhalt: not self.mein_filter(inhalt)
+        self.assertNotEqual(self.plan.fuehre_aus(0).typ, trainingsinhalt.BelastungTypen.COUNTDOWN)
+        self.assertEqual(self.plan.laufzeit_trainings_programm_in_ms(0, neuer_filter), 0)
+        self.assertEqual(self.plan.laufzeit_trainings_programm_in_ms(15_000, neuer_filter), 15_000)
+        self.assertEqual(self.plan.laufzeit_trainings_programm_in_ms(16_000, neuer_filter), 16_000)
+        self.assertEqual(self.plan.laufzeit_trainings_programm_in_ms(51_000, neuer_filter), 50_000)
+        self.assertEqual(self.plan.fuehre_aus(51_000).typ, trainingsinhalt.BelastungTypen.COUNTDOWN)
+        self.assertEqual(self.plan.laufzeit_trainings_programm_in_ms(65_000, neuer_filter), 50_000)
+        # Nach Trainingsende ist der Zustand unbestimmt.
+        # TODO Hier sollte eigentlich 51_000 bzw. 151_000kommen
+        self.assertEqual(self.plan.laufzeit_trainings_programm_in_ms(66_000, neuer_filter), 50_000)
+        self.assertEqual(self.plan.laufzeit_trainings_programm_in_ms(166_000, neuer_filter), 50_000)
+
+    def test_laufzeit_trainings_programm(self):
+        self.assertNotEqual(self.plan.fuehre_aus(0).typ, trainingsinhalt.BelastungTypen.COUNTDOWN)
+        self.assertEqual(self.plan.laufzeit_trainings_programm(0), 0)
+        self.assertEqual(self.plan.laufzeit_trainings_programm(1), 0)
+        self.assertEqual(self.plan.laufzeit_trainings_programm(5000), 5)
+        self.assertEqual(self.plan.laufzeit_trainings_programm(5001), 5)
+
+        self.plan = self.plan_mit_fuenf
+        self.assertEqual(self.plan.laufzeit_trainings_programm(0), 0)
+        self.assertEqual(self.plan.laufzeit_trainings_programm(10000), 10)
+        self.assertEqual(self.plan.laufzeit_trainings_programm(10001), 10)
+        self.assertEqual(self.plan.laufzeit_trainings_programm(45000), 45)
+        self.assertEqual(self.plan.laufzeit_trainings_programm(45001), 45)
+        self.assertEqual(self.plan.laufzeit_trainings_programm(50000), 50)
+        self.assertEqual(self.plan.laufzeit_trainings_programm(51000), 51)
+
+        self.plan = self.plan_mit_countdown
+        neuer_filter = lambda inhalt: not self.mein_filter(inhalt)
+        self.assertEqual(self.plan_mit_countdown.fuehre_aus(0).typ, trainingsinhalt.BelastungTypen.COUNTDOWN)
+        self.assertEqual(self.plan.laufzeit_trainings_programm(0, neuer_filter), 0)
+        self.assertEqual(self.plan.laufzeit_trainings_programm(15000, neuer_filter), 0)
+        self.assertEqual(self.plan.laufzeit_trainings_programm(16000, neuer_filter), 1)
+        self.assertEqual(self.plan.laufzeit_trainings_programm(65000, neuer_filter), 50)
+        self.assertEqual(self.plan.laufzeit_trainings_programm(66000, neuer_filter), 51)
+
+        self.plan = replace(self.plan, inhalte=list(reversed(self.plan.inhalte)))
+        neuer_filter = lambda inhalt: not self.mein_filter(inhalt)
+        self.assertNotEqual(self.plan.fuehre_aus(0).typ, trainingsinhalt.BelastungTypen.COUNTDOWN)
+        self.assertEqual(self.plan.laufzeit_trainings_programm(0, neuer_filter), 0)
+        self.assertEqual(self.plan.laufzeit_trainings_programm(15_000, neuer_filter), 15)
+        self.assertEqual(self.plan.laufzeit_trainings_programm(16_000, neuer_filter), 16)
+        self.assertEqual(self.plan.laufzeit_trainings_programm(51_000, neuer_filter), 50)
+        self.assertEqual(self.plan.fuehre_aus(51_000).typ, trainingsinhalt.BelastungTypen.COUNTDOWN)
+        self.assertEqual(self.plan.laufzeit_trainings_programm(65_000, neuer_filter), 50)
+        # Nach Trainingsende ist der Zustand unbestimmt.
+        self.assertEqual(self.plan.laufzeit_trainings_programm(66_000, neuer_filter), 50)
+
     def test_trainingszeit_beendeter_inhalte(self):
         self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(0), 0)
         self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(10000), 0)
         self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(10001), 0)
         self.plan = self.plan_mit_fuenf
         self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(0), 0)
-        self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(10000), 0)
-        self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(10001), 10000)
-        self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(15000), 10000)
-        self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(25000), 20000)
-        self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(45000), 40000)
-        self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(50000), 40000)
+        self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(10_000), 0)
+        self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(10_001), 10_000)
+        self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(15_000), 10_000)
+        self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(25_000), 20_000)
+        self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(45_000), 40_000)
+        self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(50_000), 40_000)
+        self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(50_001), 40_000)
+
+    def test_trainingszeit_beendeter_inhalte_mit_filter(self):
+        self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(0, self.mein_filter), 0)
+        self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(10_000, self.mein_filter), 0)
+        self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(10_001, self.mein_filter), 0)
+        self.plan = self.plan_mit_fuenf
+        self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(0, self.mein_filter), 0)
+        self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(10_000, self.mein_filter), 0)
+        self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(10_001, self.mein_filter), 10_000)
+        self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(15_000, self.mein_filter), 10_000)
+        self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(25_000, self.mein_filter), 20_000)
+        self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(45_000, self.mein_filter), 40_000)
+        self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(50_000, self.mein_filter), 40_000)
+        neuer_filter = lambda elem: not self.mein_filter(elem)
+        for zeit in range(50000):
+            self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(zeit, neuer_filter), 0)
+        self.plan = self.plan_mit_countdown
+        self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(0, neuer_filter), 0)
+        self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(15_000, neuer_filter), 0)
+        self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(15_001, neuer_filter), 15_000)
+        self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(25_000, neuer_filter), 15_000)
+        self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(45_000, neuer_filter), 15_000)
+        self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(50_000, neuer_filter), 15_000)
+        self.plan = replace(self.plan, inhalte=list(reversed(self.plan.inhalte)))
+        self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(0, neuer_filter), 0)
+        self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(50_000, neuer_filter), 0)
+        self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(65_000, neuer_filter), 0)
+        self.assertEqual(self.plan.trainingszeit_beendeter_inhalte(65_001, neuer_filter), 0)
 
     def test_berechne_distanze_gesamt(self):
         liste = [
@@ -289,6 +397,8 @@ class test_Trainingsprogramm(TestCase):
 
     def test_erzeuge_trainingsprogramm_Tabata(self):
         training = erzeuge_trainingsprogramm_Tabata((35, 55), (100, 100))
+        # Ohne Countdown ausfuehren
+        training = replace(training, inhalte=training.inhalte[1:])
         zeit_intervall = 20 / 60
         zeit_pause = 10 / 60
         zeit_set = zeit_intervall + zeit_pause
@@ -327,6 +437,9 @@ class test_Trainingsprogramm(TestCase):
             self.assertEqual(zeit_pause * to_millis,
                              training.fuehre_aus(int((warmfahrzeit + zeit_intervall) * to_millis + 1 + zeit *
                                                  zeit_set * to_millis)).dauer(), f"Zeit = {zeit}")
+
+    def test_erzeuge_trainingsprogramm_Tabata_mit_countdown(self):
+        pass
 
     def test_erzeuge_trainingsprogramm_G1_mit_sprints(self):
         training = erzeuge_trainingsprogramm_G1_mit_sprints((34, 64), (100, 100))

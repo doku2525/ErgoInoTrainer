@@ -19,6 +19,8 @@ class test_ControllerStatus(TestCase):
             programm = tp.erzeuge_trainingsprogramm_Tabata((1, 10), (90, 100),
                                                       warmfahrzeit=0.25,
                                                       ausfahrzeit=0.25)
+            # TODO Workaround, da Test fuer Tabata ohne Countdown geschrieben wurde
+            programm = replace(programm, inhalte=programm.inhalte[1:])
             modell = ApplikationModell(board=BoardConnector(device=None))
             modell.trainingsprogramm = programm
             self.status = ControllerStatus(modell)

@@ -167,3 +167,9 @@ class test_Zonen(TestCase):
         self.assertEqual(0.3*100, result[0.3]['dur'], "Powerindex / Minute")
         self.assertEqual(0.6*1*50, result[0.6]['all'], "Powerindex accumuliert")
         self.assertEqual(0.6*50, result[0.6]['dur'], "Powerindex / Minute")
+
+    def test_merge_werte_and_power_teste_auf_nullwert(self):
+        self.test_zonen = self.test_zonen.updateZone(0.0, FlexibleZeit.create_from_sekunden(10), 0, 0)
+        self.assertIn(0.0, self.test_zonen.zonen.keys())
+        result = self.test_zonen.mergeWerteAndPower()
+        self.assertNotIn(0.0, result.keys())
