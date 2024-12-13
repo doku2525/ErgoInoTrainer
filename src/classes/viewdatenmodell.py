@@ -49,7 +49,6 @@ class ViewDatenmodell:
     anzahl_sets: int = field(default_factory=int)
     anzahl_fertige_sets: int = field(default_factory=int)
     reps: int = field(default_factory=int)
-    # zonen_tabelle: dict = field(default_factory=dict)   # TODO Scheint ueberfluessig zu sein
     intervall_tabelle: list[list[int, int, int, int, (int, int, int)]] = field(default_factory=list)
     device_werte: str = field(default_factory=str)
     intervall_farbe: tuple[int, int, int] = field(default_factory=tuple)
