@@ -9,9 +9,9 @@ LOG_FILE = '../../daten/log/trainer.log'
 
 class LogZeile(NamedTuple):
     name: str
-    datum: datetime.date
-    uhrzeit: datetime.time
-    dauer: datetime.time
+    datum: str
+    uhrzeit: str
+    dauer: str
     inhalt: str
     intervall_countdown: int
     cad: int
@@ -46,10 +46,11 @@ def parse_trainingslog(dateiname: str) -> dict:
 
             if trainingszeit == start_zeit:
                 result = result | {f"{obj.datum} : {obj.name}": {}}
-            #if obj.name == "G1 mit 15sek Sprints" and obj.inhalt == 'Intervall':
-            #    print(f" {obj.intervall_countdown} {obj.pwm} {obj.cad} {obj.cad_avg_intervall}")
+            # if obj.name == "G1 mit 15sek Sprints" and obj.inhalt == 'Intervall':
+            #     print(f" {obj.intervall_countdown} {obj.pwm} {obj.cad} {obj.cad_avg_intervall}")
 
     return result
+
 
 def extrahiere_intervalle_fuer_training(dateiname: str, trainings_string: str) -> dict:
     with open(dateiname, 'r') as csvfile:
@@ -73,23 +74,19 @@ def extrahiere_intervalle_fuer_training(dateiname: str, trainings_string: str) -
 
     return result
 
+
 def drucke_jeden_intervall(dateiname, training):
-    for elem in parse_trainingslog(LOG_FILE).keys():
-        if elem.split(' : ')[1] == training:
-            for datum, zeiten in extrahiere_intervalle_fuer_training(LOG_FILE, elem).items():
+    for titel in parse_trainingslog(dateiname).keys():
+        if titel.split(' : ')[1] == training:
+            for datum, zeiten in extrahiere_intervalle_fuer_training(LOG_FILE, titel).items():
                 print(f"{datum}")
                 for zeile in zeiten:
                     print(f"\t{zeile}")
 
+
 if __name__ == '__main__':
 
-#    for elem in parse_trainingslog(LOG_FILE).keys():
-#        print(f"{elem.split(' : ')[1]}")
+    for elem in parse_trainingslog(LOG_FILE).keys():
+        print(f"{elem.split(' : ')[1]}")
 
     drucke_jeden_intervall(LOG_FILE, 'G1 mit 15sek Sprints')
-#    for elem in parse_trainingslog(LOG_FILE).keys():
-#        print(f"{elem.split(' : ')[1]}")
-#    for datum, zeiten in extrahiere_intervalle_fuer_training(LOG_FILE,'2024-12-08 : G1 mit 15sek Sprints').items():
-#        print(f"{datum}")
-#        for zeile in zeiten:
-#            print(f"\t{zeile}")
