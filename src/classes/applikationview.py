@@ -103,22 +103,23 @@ class ApplikationView:
            (40, self.daten.intervall_distanze, False, (10, 96 + 100)),
            (80, self.daten.intervall_zeit, False, (10, 200 + 25)),
            (40, self.daten.intervall_herz, False, (10, 200 + 80)),
+           (22, " IP: {0}".format(self.daten.ip_adresse), self.farbe_schwarz,(screen_breite - 139, screen_hoehe - 15)),
            (22, " Log: {0}".format(str(self.daten.log_datei).split("/")[-1]), self.farbe_schwarz, (screen_breite - 139,
-                                                                                                   screen_hoehe - 15)),
+                                                                                                   screen_hoehe - 15 - 15)),
            (22, " Intervall {0}".format(self.daten.intervall_zeit), self.farbe_rot, (screen_breite - 139,
-                                                                                     screen_hoehe - 30)),
-           (22, " Pause {0}".format(""), self.farbe_gruen, (screen_breite - 139, screen_hoehe - 45)),
+                                                                                     screen_hoehe - 30 - 15)),
+           (22, " Pause {0}".format(""), self.farbe_gruen, (screen_breite - 139, screen_hoehe - 45 - 15)),
            (22, " Sets {0}".format(self.daten.anzahl_sets), self.farbe_rot, (screen_breite - 139,
-                                                                             screen_hoehe - 60)),
-           (22, " Zeit ", self.farbe_schwarz, (screen_breite - 139, screen_hoehe - 75)),
+                                                                             screen_hoehe - 60 - 15)),
+           (22, " Zeit ", self.farbe_schwarz, (screen_breite - 139, screen_hoehe - 75 - 15)),
            (22, "{0}".format(self.daten.trainings_gesamtzeit[:-1]), self.farbe_schwarz, (screen_breite - 100,
-                                                                                         screen_hoehe - 75)),
+                                                                                         screen_hoehe - 75 - 15)),
            (33, "{0}".format(self.daten.trainings_gesamtzeit[-1]), self.farbe_schwarz, (screen_breite - 44,
-                                                                                        screen_hoehe - 78)),
+                                                                                        screen_hoehe - 78 - 15)),
            (22, " {0}".format(self.daten.trainings_inhalt), self.farbe_schwarz, (screen_breite - 139,
-                                                                                 screen_hoehe - 90)),
+                                                                                 screen_hoehe - 90 - 15)),
            (28, "{0}".format(self.daten.trainings_name), self.farbe_schwarz, (screen_breite - 141,
-                                                                              screen_hoehe - 110))]
+                                                                              screen_hoehe - 110 - 15))]
         index = 0
         werte = self.daten.werte_und_power
         if isinstance(werte, int):

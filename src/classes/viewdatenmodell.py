@@ -2,6 +2,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from dataclasses import dataclass, field, replace
 import datetime
+import socket
+
 import src.classes.trainingsprogramm as tprog
 from src.classes.trainingsinhalt import BelastungTypen
 
@@ -11,6 +13,17 @@ if TYPE_CHECKING:
 
 farbe_rot = (255, 0, 0)
 farbe_gruen = (0, 255, 0)
+
+
+def ermittle_ip_adresse() -> str:
+    import subprocess
+    konsole_out = subprocess.run(['ip', 'addr'], capture_output=True, text=True)
+    return [zeile
+            for zeile
+            in konsole_out.stdout.split("\n") if "inet 192.168.2" in zeile][0].split('/')[0].strip().split(" ")[1]
+
+
+IP_ADRESSE = ermittle_ip_adresse()
 
 
 @dataclass(frozen=True)
@@ -53,6 +66,7 @@ class ViewDatenmodell:
     device_werte: str = field(default_factory=str)
     intervall_farbe: tuple[int, int, int] = field(default_factory=tuple)
     log_datei: str = field(default_factory=str)
+    ip_adresse: str = field(default_factory=str)
 
     def berechne_ergometer_daten(self, status: ControllerStatus = None) -> ViewDatenmodell:
         return replace(self, **{
@@ -129,6 +143,7 @@ class ViewDatenmodell:
                     ('\u2297' if status.pause_nach_aktuellem_inhalt else '')),
             'werte_und_power': status.modell.zonen.mergeWerteAndPower(),
             'device_werte': str(status.modell.board.device_daten.__dict__),
+            'ip_adresse': IP_ADRESSE,
             'trainings_name': status.modell.trainingsprogramm.name,
             'trainings_inhalt': status.modell.trainingsprogramm.fuehre_aus(status.gestoppte_zeit.als_ms()).name,
             'trainings_gesamtzeit': (str(
