@@ -6,6 +6,8 @@ import socket
 
 import src.classes.trainingsprogramm as tprog
 from src.classes.trainingsinhalt import BelastungTypen
+import src.utils.netzwerk as netutils
+#from src.utils.netzwerk import ermittle_ip_adresse
 
 if TYPE_CHECKING:
     from src.classes.controllerstatus import ControllerStatus
@@ -15,15 +17,7 @@ farbe_rot = (255, 0, 0)
 farbe_gruen = (0, 255, 0)
 
 
-def ermittle_ip_adresse() -> str:
-    import subprocess
-    konsole_out = subprocess.run(['ip', 'addr'], capture_output=True, text=True)
-    return [zeile
-            for zeile
-            in konsole_out.stdout.split("\n") if "inet 192.168.2" in zeile][0].split('/')[0].strip().split(" ")[1]
-
-
-IP_ADRESSE = ermittle_ip_adresse()
+IP_ADRESSE = netutils.ermittle_ip_adresse()
 
 
 @dataclass(frozen=True)

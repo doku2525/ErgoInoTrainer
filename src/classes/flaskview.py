@@ -1,11 +1,15 @@
 from typing import Callable
-from flask import Flask, jsonify, render_template, Request, request, redirect, Response
+from flask import Flask, jsonify, render_template, Request, request, redirect, Response, url_for
 from threading import Thread
 import logging as lg
 
 from dataclasses import asdict
 from src.classes.viewdatenmodell import ViewDatenmodell
+import src.modules.qr_code as qr
 import src.classes.commandmapper as cmd
+
+
+QR_ROUTE = '/qr_scan'
 
 
 class FlaskView:
@@ -43,6 +47,11 @@ class FlaskView:
         @self.app.route('/get_data')
         def get_data():
             return jsonify(asdict(self.daten))
+
+        @self.app.route(QR_ROUTE)
+        def qr_scan():
+            qr.beende_anzeige.append(True)
+            return redirect(url_for('index'))
 
     def register_kommando_routes(self) -> None:
         """Registriert dynamisch einfache Routen, die in der commandmapper.COMMANDS-Liste definiert sind."""

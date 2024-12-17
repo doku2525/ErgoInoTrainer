@@ -4,10 +4,14 @@ import pygame
 from typing import Callable, TYPE_CHECKING
 
 import src.modules.audiomodul as audio
+import src.modules.qr_code as qr
+import src.utils.netzwerk as netutils
+import src.classes.flaskview as fview
 
 if TYPE_CHECKING:
     from src.classes.controllerstatus import ControllerStatus
     from src.classes.ergometer import Ergometer
+    from src.classes.flaskview import FlaskView
 
 
 # ----------------------
@@ -56,6 +60,14 @@ def change_unendlich_status_in_trainingsprogramm(status: ControllerStatus) -> No
                                               unendlich=not status.modell.trainingsprogramm.unendlich)
 
 
+def zeige_qr_code() -> None:
+    """Der QR-Code fuehrt zur unten angegeben Adresse"""
+    url = netutils.ermittle_ip_adresse()
+    img = qr.generate_qr_code(f"{url}:5000{fview.QR_ROUTE}")
+    qr.beende_anzeige = []
+    qr.zeige_qr_code_in_tkinter(img, qr.beende_anzeige)
+
+
 @dataclass(frozen=True)
 class CommandMapper:
     command_string: str = field(default_factory=str)
@@ -102,6 +114,8 @@ COMMANDS = [
                                 (pygame.KMOD_RSHIFT, pygame.K_e)],
                   flask_route='change_trainigsprogramm_unendlich',
                   funktion=change_unendlich_status_in_trainingsprogramm, kwargs={'status': True}),
+    CommandMapper(command_string="ZEIGE_QR_CODE", key_bindings=[(pygame.KMOD_LCTRL, pygame.K_q)],
+                  flask_route=None, funktion=zeige_qr_code, kwargs={})
 ]
 
 ALLE_SHIFT_MODIFIER = [pygame.KMOD_SHIFT, pygame.KMOD_LSHIFT, pygame.KMOD_RSHIFT]
