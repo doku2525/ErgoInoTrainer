@@ -81,7 +81,8 @@ def drucke_jeden_intervall(dateiname, training):
             for datum, zeiten in extrahiere_intervalle_fuer_training(LOG_FILE, titel).items():
                 print(f"{datum}")
                 for zeile in zeiten:
-                    print(f"\t{zeile}")
+                    if zeile.split()[0] == "1":
+                        print(f"\t{zeile}")
 
 
 if __name__ == '__main__':
@@ -89,4 +90,4 @@ if __name__ == '__main__':
     for elem in parse_trainingslog(LOG_FILE).keys():
         print(f"{elem.split(' : ')[1]}")
 
-    drucke_jeden_intervall(LOG_FILE, 'G1 mit 15sek Sprints')
+    drucke_jeden_intervall(LOG_FILE, 'Tabata')
