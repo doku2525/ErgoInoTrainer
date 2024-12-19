@@ -75,14 +75,21 @@ def extrahiere_intervalle_fuer_training(dateiname: str, trainings_string: str) -
     return result
 
 
-def drucke_jeden_intervall(dateiname, training):
-    for titel in parse_trainingslog(dateiname).keys():
-        if titel.split(' : ')[1] == training:
-            for datum, zeiten in extrahiere_intervalle_fuer_training(LOG_FILE, titel).items():
-                print(f"{datum}")
-                for zeile in zeiten:
-                    if zeile.split()[0] == "1":
-                        print(f"\t{zeile}")
+import numpy as np
+
+
+def erzeuge_numpy_array(ergebnis_trainingseinheit: list[str]) -> np.ndarray:
+    ergbnis_als_liste = [int(datensatz.split()[2]) for datensatz in ergebnis_trainingseinheit]
+    mein_array = np.array(ergbnis_als_liste)
+    return mein_array.reshape(4, 15)
+
+
+def erzeuge_numpy_aller_intervalle(dateiname, training):
+    return np.stack(
+            [erzeuge_numpy_array(zeiten)
+             for titel in parse_trainingslog(dateiname).keys() if titel.split(' : ')[1] == training
+             for datum, zeiten
+             in extrahiere_intervalle_fuer_training(LOG_FILE, titel).items()], axis=0)
 
 
 if __name__ == '__main__':
@@ -90,4 +97,7 @@ if __name__ == '__main__':
     for elem in parse_trainingslog(LOG_FILE).keys():
         print(f"{elem.split(' : ')[1]}")
 
-    drucke_jeden_intervall(LOG_FILE, 'Tabata')
+    result = erzeuge_numpy_aller_intervalle(LOG_FILE, 'G1 mit 15sek Sprints')
+    # print(result)
+    print(result.shape)
+    print(np.max(result, axis=0))
