@@ -76,12 +76,12 @@ def extrahiere_intervalle_fuer_training(dateiname: str, trainings_string: str) -
 
 
 import numpy as np
-
+import pandas as pd
 
 def erzeuge_numpy_array(ergebnis_trainingseinheit: list[str]) -> np.ndarray:
     ergbnis_als_liste = [int(datensatz.split()[2]) for datensatz in ergebnis_trainingseinheit]
     mein_array = np.array(ergbnis_als_liste)
-    return mein_array.reshape(4, 15)
+    return mein_array.reshape(8, 20)
 
 
 def erzeuge_numpy_aller_intervalle(dateiname, training):
@@ -97,7 +97,17 @@ if __name__ == '__main__':
     for elem in parse_trainingslog(LOG_FILE).keys():
         print(f"{elem.split(' : ')[1]}")
 
-    result = erzeuge_numpy_aller_intervalle(LOG_FILE, 'G1 mit 15sek Sprints')
+    result = erzeuge_numpy_aller_intervalle(LOG_FILE, 'Tabata')
     # print(result)
     print(result.shape)
-    print(np.max(result, axis=0))
+    print(result)
+    for i in range(len(result)):
+        df = pd.DataFrame(result[i])
+        column_means = df.mean(axis=0)
+        df.loc['D'] = column_means
+        row_means = df.mean(axis=1)
+        df['D'] = row_means
+        print(f"Matrix {i + 1}:")
+        print(df)
+        print("\n")
+#        print(f"Durchschnitt: {np.average(result[i], axis=0)}\n")
