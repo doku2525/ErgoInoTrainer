@@ -81,7 +81,7 @@ import pandas as pd
 def erzeuge_numpy_array(ergebnis_trainingseinheit: list[str]) -> np.ndarray:
     ergbnis_als_liste = [int(datensatz.split()[2]) for datensatz in ergebnis_trainingseinheit]
     mein_array = np.array(ergbnis_als_liste)
-    return mein_array.reshape(8, 20)
+    return mein_array.reshape(4, 15)
 
 
 def erzeuge_numpy_aller_intervalle(dateiname, training):
@@ -97,7 +97,7 @@ if __name__ == '__main__':
     for elem in parse_trainingslog(LOG_FILE).keys():
         print(f"{elem.split(' : ')[1]}")
 
-    result = erzeuge_numpy_aller_intervalle(LOG_FILE, 'Tabata')
+    result = erzeuge_numpy_aller_intervalle(LOG_FILE, 'G1 mit 15sek Sprints')
     # print(result)
     print(result.shape)
     print(result)
