@@ -12,6 +12,8 @@ from src.classes.bledevice import PulsmesserBLEDevice
 meine_trainings_programme = [
     ("G1 locker", "erzeuge_trainingsprogramm_G1(dauer_in_minuten=95, pwm=34, cad=100)",
         tp.erzeuge_trainingsprogramm_G1(dauer_in_minuten=95, pwm=34, cad=100)),
+    ("G1 normal", "erzeuge_trainingsprogramm_G1(dauer_in_minuten=90, pwm=37, cad=95)",
+        tp.erzeuge_trainingsprogramm_G1(dauer_in_minuten=90, pwm=37, cad=95)),
     ("G1 schwer", "erzeuge_trainingsprogramm_G1(dauer_in_minuten=90, pwm=40, cad=90)",
         tp.erzeuge_trainingsprogramm_G1(dauer_in_minuten=90, pwm=40, cad=90)),
     ("G1 mit 15sek Sprints",
