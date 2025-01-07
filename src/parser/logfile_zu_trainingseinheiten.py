@@ -78,15 +78,34 @@ def extrahiere_intervalle_fuer_training(dateiname: str, trainings_string: str) -
 import numpy as np
 import pandas as pd
 
-def erzeuge_numpy_array(ergebnis_trainingseinheit: list[str]) -> np.ndarray:
+
+def erzeuge_numpy_array(ergebnis_trainingseinheit: list[str], training: str) -> np.ndarray:
     ergbnis_als_liste = [int(datensatz.split()[2]) for datensatz in ergebnis_trainingseinheit]
     mein_array = np.array(ergbnis_als_liste)
-    return mein_array.reshape(8, 20)
+    # Ersetze Null-Werte durch den Durchschnittswert der beiden Nachbarn
+    print(f"Eleminiere Nullwerte")
+    zero_indices = np.where(mein_array == 0)[0]
+    for index in zero_indices:
+        if index == 0:
+            mein_array[index] = mein_array[index + 1]
+        elif index == len(mein_array) - 1:
+            mein_array[index] = mein_array[index - 1]
+        else:
+            mein_array[index] = (mein_array[index - 1] + mein_array[index + 1]) / 2
+    match training:
+        case 'K3':
+            form = (3, 10)  # Bei 1min Steigerung kleinste moegl. Form (3,60)=5s/Block, (3,30)=10s, (3x15)=20s fuer 5min
+            reshaped_array = mein_array.reshape(form[0], form[1], int(mein_array.size / (form[0] * form[1])))
+            print(f" {reshaped_array.shape = }")
+            return np.mean(reshaped_array, axis=2).reshape(form)  # Berechne den Durchschnitt fuer jede Zeile
+        case 'Tabata': return np.round(mein_array.reshape(8, 20), 0)
+        case 'G1 mit 15sek Sprints': return mein_array.reshape(4, 15)
+        case 'G2Intervall': return mein_array.reshape(6, 60)
 
 
 def erzeuge_numpy_aller_intervalle(dateiname, training):
     return np.stack(
-            [erzeuge_numpy_array(zeiten)
+            [erzeuge_numpy_array(zeiten, training)
              for titel in parse_trainingslog(dateiname).keys() if titel.split(' : ')[1] == training
              for datum, zeiten
              in extrahiere_intervalle_fuer_training(LOG_FILE, titel).items()], axis=0)
@@ -96,11 +115,11 @@ if __name__ == '__main__':
 
     for elem in parse_trainingslog(LOG_FILE).keys():
         print(f"{elem.split(' : ')[1]}")
-
-    result = erzeuge_numpy_aller_intervalle(LOG_FILE, 'Tabata')
+    verfuegbare_trainings = ['K3', 'Tabata', 'G1 mit 15sek Sprints', 'G2Intervall']
+    result = erzeuge_numpy_aller_intervalle(LOG_FILE, verfuegbare_trainings[0])
     # print(result)
     print(result.shape)
-    print(result)
+    print(np.round(result, 1))
     for i in range(len(result)):
         df = pd.DataFrame(result[i])
         column_means = df.mean(axis=0)
@@ -108,6 +127,6 @@ if __name__ == '__main__':
         row_means = df.mean(axis=1)
         df['D'] = row_means
         print(f"Matrix {i + 1}:")
-        print(df)
+        print(df.round(2))
         print("\n")
 #        print(f"Durchschnitt: {np.average(result[i], axis=0)}\n")
