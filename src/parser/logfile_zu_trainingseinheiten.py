@@ -94,6 +94,7 @@ def erzeuge_numpy_array(ergebnis_trainingseinheit: list[str], training: str) -> 
             mein_array[index] = (mein_array[index - 1] + mein_array[index + 1]) / 2
     match training:
         case 'K3':
+            # Bei vielen Werten fasse die Werte zu Zeiteinheiten zusammen.
             form = (3, 10)  # Bei 1min Steigerung kleinste moegl. Form (3,60)=5s/Block, (3,30)=10s, (3x15)=20s fuer 5min
             reshaped_array = mein_array.reshape(form[0], form[1], int(mein_array.size / (form[0] * form[1])))
             print(f" {reshaped_array.shape = }")
@@ -116,7 +117,7 @@ if __name__ == '__main__':
     for elem in parse_trainingslog(LOG_FILE).keys():
         print(f"{elem.split(' : ')[1]}")
     verfuegbare_trainings = ['K3', 'Tabata', 'G1 mit 15sek Sprints', 'G2Intervall']
-    result = erzeuge_numpy_aller_intervalle(LOG_FILE, verfuegbare_trainings[0])
+    result = erzeuge_numpy_aller_intervalle(LOG_FILE, verfuegbare_trainings[1])
     # print(result)
     print(result.shape)
     print(np.round(result, 1))
