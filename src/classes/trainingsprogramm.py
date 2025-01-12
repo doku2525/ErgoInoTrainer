@@ -169,7 +169,7 @@ def erzeuge_trainingsprogramm_Tabata(pwm: tuple[int, int], cad: tuple[int, int],
     to_millis = 60 * 1000
 
     warmfahren = [
-        trainingsinhalt.CountdownBisStart(),
+        # trainingsinhalt.CountdownBisStart(),
         trainingsinhalt.Dauermethode("Warmfahren", warmfahrzeit * to_millis, cad[0], pwm[0],
                                      trainingsinhalt.BelastungTypen.G1),
     ]
