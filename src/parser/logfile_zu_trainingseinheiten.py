@@ -111,13 +111,32 @@ def erzeuge_numpy_aller_intervalle(dateiname, training):
              for datum, zeiten
              in extrahiere_intervalle_fuer_training(LOG_FILE, titel).items()], axis=0)
 
+def find_max_matrix(matrices):
+  """
+  Findet für jede Position in den Matrizen den maximalen Wert.
+
+  Args:
+    matrices: Eine Liste von Matrizen (NumPy-Arrays oder Listen von Listen).
+
+  Returns:
+    Eine Matrix, die an jeder Position den maximalen Wert enthält.
+  """
+
+  # Konvertiere die Matrizen in NumPy-Arrays für effizientere Berechnungen
+  np_matrices = [np.array(matrix) for matrix in matrices]
+  # Stapele die Matrizen entlang der dritten Achse (Tiefe)
+  stacked_matrices = np.stack(np_matrices, axis=2)
+  # Bestimme den Maximalwert entlang der dritten Achse
+  max_matrix = np.max(stacked_matrices, axis=2)
+  mean_matrix = np.mean(stacked_matrices, axis=2)
+  return max_matrix, mean_matrix
 
 if __name__ == '__main__':
 
     for elem in parse_trainingslog(LOG_FILE).keys():
         print(f"{elem.split(' : ')[1]}")
     verfuegbare_trainings = ['K3', 'Tabata', 'G1 mit 15sek Sprints', 'G2Intervall']
-    result = erzeuge_numpy_aller_intervalle(LOG_FILE, verfuegbare_trainings[0])
+    result = erzeuge_numpy_aller_intervalle(LOG_FILE, verfuegbare_trainings[2])
     # print(result)
     print(result.shape)
     print(np.round(result, 1))
@@ -131,3 +150,17 @@ if __name__ == '__main__':
         print(df.round(2))
         print("\n")
 #        print(f"Durchschnitt: {np.average(result[i], axis=0)}\n")
+
+    max_mat, mea_mat = find_max_matrix(result)
+    df = pd.DataFrame(max_mat)
+    column_means = df.mean(axis=0)
+    df.loc['D'] = column_means
+    row_means = df.mean(axis=1)
+    df['D'] = row_means
+    print(f"Maximalwerte\n{df.round(2)}")
+    df = pd.DataFrame(mea_mat)
+    column_means = df.mean(axis=0)
+    df.loc['D'] = column_means
+    row_means = df.mean(axis=1)
+    df['D'] = row_means
+    print(f"Durchschnittswerte\n{df.round(2)}")
