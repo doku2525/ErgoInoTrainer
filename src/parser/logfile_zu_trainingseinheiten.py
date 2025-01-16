@@ -92,6 +92,9 @@ def erzeuge_numpy_array(ergebnis_trainingseinheit: list[str], training: str) -> 
             mein_array[index] = mein_array[index - 1]
         else:
             mein_array[index] = (mein_array[index - 1] + mein_array[index + 1]) / 2
+    if training == 'G2Intervall' and mein_array.shape[0] < 360:
+        mein_array = np.pad(mein_array, (0, 360 - len(mein_array)), 'constant', constant_values=1)
+    print(f"Erzeuge_Numpy_Array: {mein_array.shape = }")
     match training:
         case 'K3':
             # Bei vielen Werten fasse die Werte zu Zeiteinheiten zusammen.
@@ -101,7 +104,8 @@ def erzeuge_numpy_array(ergebnis_trainingseinheit: list[str], training: str) -> 
             return np.mean(reshaped_array, axis=2).reshape(form)  # Berechne den Durchschnitt fuer jede Zeile
         case 'Tabata': return np.round(mein_array.reshape(8, 20), 0)
         case 'G1 mit 15sek Sprints': return mein_array.reshape(4, 15)
-        case 'G2Intervall': return mein_array.reshape(6, 60)
+        case 'G2Intervall': return (mein_array.reshape(6, 60) if len(mein_array) == 360 else
+                                    np.pad(mein_array, (0, 360 - len(mein_array)), 'constant', constant_values=1))
 
 
 def erzeuge_numpy_aller_intervalle(dateiname, training):
@@ -136,7 +140,7 @@ if __name__ == '__main__':
     for elem in parse_trainingslog(LOG_FILE).keys():
         print(f"{elem.split(' : ')[1]}")
     verfuegbare_trainings = ['K3', 'Tabata', 'G1 mit 15sek Sprints', 'G2Intervall']
-    result = erzeuge_numpy_aller_intervalle(LOG_FILE, verfuegbare_trainings[2])
+    result = erzeuge_numpy_aller_intervalle(LOG_FILE, verfuegbare_trainings[3])
     # print(result)
     print(result.shape)
     print(np.round(result, 1))
