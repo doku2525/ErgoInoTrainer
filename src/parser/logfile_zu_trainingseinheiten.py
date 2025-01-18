@@ -140,7 +140,7 @@ if __name__ == '__main__':
     for elem in parse_trainingslog(LOG_FILE).keys():
         print(f"{elem.split(' : ')[1]}")
     verfuegbare_trainings = ['K3', 'Tabata', 'G1 mit 15sek Sprints', 'G2Intervall']
-    result = erzeuge_numpy_aller_intervalle(LOG_FILE, verfuegbare_trainings[0])
+    result = erzeuge_numpy_aller_intervalle(LOG_FILE, verfuegbare_trainings[3])
     # print(result)
     print(result.shape)
     print(np.round(result, 1))
