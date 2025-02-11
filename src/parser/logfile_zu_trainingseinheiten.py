@@ -2,6 +2,8 @@ import csv
 import datetime
 import time
 from typing import NamedTuple
+import numpy as np
+import pandas as pd
 
 
 LOG_FILE = '../../daten/log/trainer.log'
@@ -33,10 +35,11 @@ class LogZeile(NamedTuple):
 
 
 def parse_trainingslog(dateiname: str) -> dict:
+    result_dict = {}
     with open(dateiname, 'r') as csvfile:
         reader = csv.reader(csvfile, delimiter='\t')
         start_zeit = datetime.datetime.strptime('0:00:01', '%H:%M:%S').time()
-        result = {}
+
         for zeile in reader:
             obj = LogZeile(*zeile)
 
@@ -45,18 +48,18 @@ def parse_trainingslog(dateiname: str) -> dict:
             # print(zeile)
 
             if trainingszeit == start_zeit:
-                result = result | {f"{obj.datum} : {obj.name}": {}}
+                result_dict = result_dict | {f"{obj.datum} : {obj.name}": {}}
             # if obj.name == "G1 mit 15sek Sprints" and obj.inhalt == 'Intervall':
             #     print(f" {obj.intervall_countdown} {obj.pwm} {obj.cad} {obj.cad_avg_intervall}")
 
-    return result
+    return result_dict
 
 
 def extrahiere_intervalle_fuer_training(dateiname: str, trainings_string: str) -> dict:
+    result_dict = {}
     with open(dateiname, 'r') as csvfile:
         reader = csv.reader(csvfile, delimiter='\t')
         start_zeit = datetime.datetime.strptime('0:00:01', '%H:%M:%S').time()
-        result = {}
         for zeile in reader:
             obj = LogZeile(*zeile)
 
@@ -66,17 +69,13 @@ def extrahiere_intervalle_fuer_training(dateiname: str, trainings_string: str) -
 
             schluessel = f"{obj.datum} : {obj.name}"
             if trainingszeit == start_zeit and schluessel == trainings_string:
-                result = result | {schluessel: []}
+                result_dict = result_dict | {schluessel: []}
             if schluessel == trainings_string and obj.inhalt == 'Intervall':
-                result = result | {
-                    schluessel: result.get(schluessel, []) + [
+                result_dict = result_dict | {
+                    schluessel: result_dict.get(schluessel, []) + [
                             f"{obj.intervall_countdown}\t{obj.pwm}\t{obj.cad}\t{obj.cad_avg_intervall}"]}
 
-    return result
-
-
-import numpy as np
-import pandas as pd
+    return result_dict
 
 
 def erzeuge_numpy_array(ergebnis_trainingseinheit: list[str], training: str) -> np.ndarray:
@@ -115,32 +114,32 @@ def erzeuge_numpy_aller_intervalle(dateiname, training):
              for datum, zeiten
              in extrahiere_intervalle_fuer_training(LOG_FILE, titel).items()], axis=0)
 
-def find_max_matrix(matrices):
-  """
-  Findet für jede Position in den Matrizen den maximalen Wert.
 
-  Args:
+def find_max_matrix(matrices):
+    """
+    Findet für jede Position in den Matrizen den maximalen Wert.
+
+    Args:
     matrices: Eine Liste von Matrizen (NumPy-Arrays oder Listen von Listen).
 
-  Returns:
+    Returns:
     Eine Matrix, die an jeder Position den maximalen Wert enthält.
-  """
+    """
+    # Konvertiere die Matrizen in NumPy-Arrays für effizientere Berechnungen
+    np_matrices = [np.array(matrix) for matrix in matrices]
+    # Stapele die Matrizen entlang der dritten Achse (Tiefe)
+    stacked_matrices = np.stack(np_matrices, axis=2)
+    # Bestimme den Maximalwert entlang der dritten Achse
+    max_matrix = np.max(stacked_matrices, axis=2)
+    mean_matrix = np.mean(stacked_matrices, axis=2)
+    return max_matrix, mean_matrix
 
-  # Konvertiere die Matrizen in NumPy-Arrays für effizientere Berechnungen
-  np_matrices = [np.array(matrix) for matrix in matrices]
-  # Stapele die Matrizen entlang der dritten Achse (Tiefe)
-  stacked_matrices = np.stack(np_matrices, axis=2)
-  # Bestimme den Maximalwert entlang der dritten Achse
-  max_matrix = np.max(stacked_matrices, axis=2)
-  mean_matrix = np.mean(stacked_matrices, axis=2)
-  return max_matrix, mean_matrix
 
 if __name__ == '__main__':
-
     for elem in parse_trainingslog(LOG_FILE).keys():
         print(f"{elem.split(' : ')[1]}")
     verfuegbare_trainings = ['K3', 'Tabata', 'G1 mit 15sek Sprints', 'G2Intervall']
-    result = erzeuge_numpy_aller_intervalle(LOG_FILE, verfuegbare_trainings[-1])
+    result = erzeuge_numpy_aller_intervalle(LOG_FILE, verfuegbare_trainings[0])
     # print(result)
     print(result.shape)
     print(np.round(result, 1))
